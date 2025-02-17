@@ -1,7 +1,7 @@
 #include <string>
 #include <emscripten/bind.h>
 #include "intern/drw_dbg.h"
-// #include "intern/dxfwriter.h"
+#include "intern/dxfwriter.h"
 #include "drw_base.h"
 #include "drw_entities.h"
 #include "drw_header.h"
@@ -10,37 +10,21 @@
 
 using namespace emscripten;
 
-// EMSCRIPTEN_BINDINGS(dxf_writer) {
-//   class_<dxfWriter>("dxfWriter")
-//     .function("writeUtf8String", &dxfWriter::writeUtf8String)
-//     .function("writeUtf8Caps", &dxfWriter::writeUtf8Caps)
-//     .function("fromUtf8String", &dxfWriter::fromUtf8String)
-//     .function("setVersion", &dxfWriter::setVersion, allow_raw_pointer<std::string*>())
-//     .function("setCodePage", &dxfWriter::setCodePage, allow_raw_pointer<std::string*>())
-//     .function("getCodePage", &dxfWriter::getCodePage)
-//     .function("writeString", &dxfWriterBinary::writeString)
-//     .function("writeInt16", &dxfWriterBinary::writeInt16)
-//     .function("writeInt32", &dxfWriterBinary::writeInt32)
-//     .function("writeInt64", &dxfWriterBinary::writeInt64)
-//     .function("writeDouble", &dxfWriterBinary::writeDouble)
-//     .function("writeBool", &dxfWriterBinary::writeBool);
-
-//   class_<dxfWriterBinary, base<dxfWriter>>("dxfWriterBinary")
-//     .function("writeString", &dxfWriterBinary::writeString)
-//     .function("writeInt16", &dxfWriterBinary::writeInt16)
-//     .function("writeInt32", &dxfWriterBinary::writeInt32)
-//     .function("writeInt64", &dxfWriterBinary::writeInt64)
-//     .function("writeDouble", &dxfWriterBinary::writeDouble)
-//     .function("writeBool", &dxfWriterBinary::writeBool);
-
-//   class_<dxfWriterAscii, base<dxfWriter>>("dxfWriterAscii")
-//     .function("writeString", &dxfWriterAscii::writeString)
-//     .function("writeInt16", &dxfWriterAscii::writeInt16)
-//     .function("writeInt32", &dxfWriterAscii::writeInt32)
-//     .function("writeInt64", &dxfWriterAscii::writeInt64)
-//     .function("writeDouble", &dxfWriterAscii::writeDouble)
-//     .function("writeBool", &dxfWriterAscii::writeBool);
-// }
+EMSCRIPTEN_BINDINGS(dxf_writer) {
+  class_<dxfWriter>("dxfWriter")
+    .function("writeUtf8String", &dxfWriter::writeUtf8String)
+    .function("writeUtf8Caps", &dxfWriter::writeUtf8Caps)
+    .function("fromUtf8String", &dxfWriter::fromUtf8String)
+    // .function("setVersion", &dxfWriter::setVersion, allow_raw_pointer<std::string*>())
+    // .function("setCodePage", &dxfWriter::setCodePage, allow_raw_pointer<std::string*>())
+    .function("getCodePage", &dxfWriter::getCodePage)
+    .function("writeString", &dxfWriter::writeString)
+    .function("writeInt16", &dxfWriter::writeInt16)
+    .function("writeInt32", &dxfWriter::writeInt32)
+    .function("writeInt64", &dxfWriter::writeInt64)
+    .function("writeDouble", &dxfWriter::writeDouble)
+    .function("writeBool", &dxfWriter::writeBool);
+}
 
 EMSCRIPTEN_BINDINGS(DRW_base) {
   enum_<DRW::Version>("DRW_Version")
@@ -201,23 +185,25 @@ EMSCRIPTEN_BINDINGS(DRW_dbg) {
     .function("printPT", &DRW_dbg::printPT);
 }
 
-// EMSCRIPTEN_BINDINGS(DRW_Header) {
-//   class_<DRW_Header>("DRW_Header")
-//     .constructor<>()
-//     .function("addDouble", &DRW_Header::addDouble)
-//     .function("addInt", &DRW_Header::addInt)
-//     .function("addStr", &DRW_Header::addStr)
-//     .function("addCoord", &DRW_Header::addCoord)
-//     .function("getComments", &DRW_Header::getComments)
-//     // .function("write", &DRW_Header::write, allow_raw_pointer<dxfWriter*>())
-//     .function("addComment", &DRW_Header::addComment)
-//     .property("vars", &DRW_Header::vars);
-// }
+EMSCRIPTEN_BINDINGS(DRW_Header) {
+  // register_map<std::string, DRW_Variant*>("map<string, DRW_Variant>");
+
+  class_<DRW_Header>("DRW_Header")
+    .constructor<>()
+    .function("addDouble", &DRW_Header::addDouble)
+    .function("addInt", &DRW_Header::addInt)
+    .function("addStr", &DRW_Header::addStr)
+    .function("addCoord", &DRW_Header::addCoord)
+    .function("getComments", &DRW_Header::getComments)
+    .function("write", &DRW_Header::write, allow_raw_pointer<dxfWriter*>())
+    .function("addComment", &DRW_Header::addComment);
+    // .property("vars", &DRW_Header::vars);
+}
 
 EMSCRIPTEN_BINDINGS(DRW_Objects) {
   register_vector<DRW_Variant*>("vector<DRW_Variant>");
   register_vector<double>("vector<double>");
-  //register_map<std::string, std::string>("map<string, string>");
+  // register_map<std::string, std::string>("map<string, string>");
 
   enum_<DRW::TTYPE>("TTYPE")
     .value("UNKNOWNT", DRW::UNKNOWNT)
@@ -618,7 +604,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
 
   class_<DRW_Vertex, base<DRW_Point>>("DRW_Vertex")
     .constructor<>()
-    .constructor<double, double, double, double>()  // Constructor with parameters
+    .constructor<double, double, double, double>()
     .property("stawidth", &DRW_Vertex::stawidth)
     .property("endwidth", &DRW_Vertex::endwidth)
     .property("bulge", &DRW_Vertex::bulge)
@@ -688,7 +674,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   class_<DRW_Image, base<DRW_Line>>("DRW_Image")
     .constructor<>()
     .property("ref", &DRW_Image::ref)
-    .property("vVector", &DRW_Image::vVector)  // Assuming DRW_Coord is also bound
+    .property("vVector", &DRW_Image::vVector)
     .property("sizeu", &DRW_Image::sizeu)
     .property("sizev", &DRW_Image::sizev)
     .property("dz", &DRW_Image::dz)
@@ -742,7 +728,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
 
   class_<DRW_DimRadial, base<DRW_Dimension>>("DRW_DimRadial")
     .constructor<>()
-    .constructor<const DRW_Dimension&>()  // Bind copy constructor
+    .constructor<const DRW_Dimension&>()
     .function("getCenterPoint", &DRW_DimRadial::getCenterPoint)
     .function("setCenterPoint", &DRW_DimRadial::setCenterPoint)
     .function("getDiameterPoint", &DRW_DimRadial::getDiameterPoint)
@@ -762,7 +748,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
 
   class_<DRW_DimAngular, base<DRW_Dimension>>("DRW_DimAngular")
     .constructor<>()
-    .constructor<const DRW_Dimension&>()  // Bind copy constructor
+    .constructor<const DRW_Dimension&>()
     .function("getFirstLine1", &DRW_DimAngular::getFirstLine1)
     .function("setFirstLine1", &DRW_DimAngular::setFirstLine1)
     .function("getFirstLine2", &DRW_DimAngular::getFirstLine2)
@@ -776,7 +762,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
 
   class_<DRW_DimAngular3p, base<DRW_Dimension>>("DRW_DimAngular3p")
     .constructor<>()
-    .constructor<const DRW_Dimension&>()  // Bind copy constructor
+    .constructor<const DRW_Dimension&>()
     .function("getFirstLine", &DRW_DimAngular3p::getFirstLine)
     .function("setFirstLine", &DRW_DimAngular3p::setFirstLine)
     .function("getSecondLine", &DRW_DimAngular3p::getSecondLine)
@@ -839,13 +825,67 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("twistAngle", &DRW_Viewport::twistAngle);
 }
 
+EMSCRIPTEN_BINDINGS(DRW_Interface) {
+  emscripten::class_<DRW_Interface>("DRW_Interface")
+    .function("addHeader", &DRW_Interface::addHeader, allow_raw_pointer<DRW_Header*>())
+    .function("addLType", &DRW_Interface::addLType)
+    .function("addLayer", &DRW_Interface::addLayer)
+    .function("addDimStyle", &DRW_Interface::addDimStyle)
+    .function("addVport", &DRW_Interface::addVport)
+    .function("addTextStyle", &DRW_Interface::addTextStyle)
+    .function("addAppId", &DRW_Interface::addAppId)
+    .function("addBlock", &DRW_Interface::addBlock)
+    .function("setBlock", &DRW_Interface::setBlock)
+    .function("endBlock", &DRW_Interface::endBlock)
+    .function("addPoint", &DRW_Interface::addPoint)
+    .function("addLine", &DRW_Interface::addLine)
+    .function("addRay", &DRW_Interface::addRay)
+    .function("addXline", &DRW_Interface::addXline)
+    .function("addArc", &DRW_Interface::addArc)
+    .function("addCircle", &DRW_Interface::addCircle)
+    .function("addEllipse", &DRW_Interface::addEllipse)
+    .function("addLWPolyline", &DRW_Interface::addLWPolyline)
+    .function("addPolyline", &DRW_Interface::addPolyline)
+    .function("addSpline", &DRW_Interface::addSpline, allow_raw_pointer<DRW_Spline*>())
+    .function("addKnot", &DRW_Interface::addKnot)
+    .function("addInsert", &DRW_Interface::addInsert)
+    .function("addTrace", &DRW_Interface::addTrace)
+    .function("add3dFace", &DRW_Interface::add3dFace)
+    .function("addSolid", &DRW_Interface::addSolid)
+    .function("addMText", &DRW_Interface::addMText)
+    .function("addText", &DRW_Interface::addText)
+    .function("addDimAlign", &DRW_Interface::addDimAlign, allow_raw_pointer<DRW_DimAligned*>())
+    .function("addDimLinear", &DRW_Interface::addDimLinear, allow_raw_pointer<DRW_DimLinear*>())
+    .function("addDimRadial", &DRW_Interface::addDimRadial, allow_raw_pointer<DRW_DimRadial*>())
+    .function("addDimDiametric", &DRW_Interface::addDimDiametric, allow_raw_pointer<DRW_DimDiametric*>())
+    .function("addDimAngular", &DRW_Interface::addDimAngular, allow_raw_pointer<DRW_DimAngular*>())
+    .function("addDimAngular3P", &DRW_Interface::addDimAngular3P, allow_raw_pointer<DRW_DimAngular3p*>())
+    .function("addDimOrdinate", &DRW_Interface::addDimOrdinate, allow_raw_pointer<DRW_DimOrdinate*>())
+    .function("addLeader", &DRW_Interface::addLeader, allow_raw_pointer<DRW_Leader*>())
+    .function("addHatch", &DRW_Interface::addHatch, allow_raw_pointer<DRW_Hatch*>())
+    .function("addViewport", &DRW_Interface::addViewport)
+    .function("addImage", &DRW_Interface::addImage, allow_raw_pointer<DRW_Image*>())
+    .function("linkImage", &DRW_Interface::linkImage, allow_raw_pointer<DRW_ImageDef*>())
+    // .function("addComment", &DRW_Interface::addComment, allow_raw_pointer<const char*>())
+    .function("writeHeader", &DRW_Interface::writeHeader)
+    .function("writeBlocks", &DRW_Interface::writeBlocks)
+    .function("writeBlockRecords", &DRW_Interface::writeBlockRecords)
+    .function("writeEntities", &DRW_Interface::writeEntities)
+    .function("writeLTypes", &DRW_Interface::writeLTypes)
+    .function("writeLayers", &DRW_Interface::writeLayers)
+    .function("writeTextstyles", &DRW_Interface::writeTextstyles)
+    .function("writeVports", &DRW_Interface::writeVports)
+    .function("writeDimstyles", &DRW_Interface::writeDimstyles)
+    .function("writeAppId", &DRW_Interface::writeAppId);
+}
+
 EMSCRIPTEN_BINDINGS(dxfRW) {
   class_<dxfRW>("dxfRW")
     // .constructor<const char*>()
     .function("setDebug", &dxfRW::setDebug)
-    // .function("read", &dxfRW::read, allow_raw_pointer<DRW_Interface*>())
+    .function("read", &dxfRW::read, allow_raw_pointer<DRW_Interface*>())
     .function("setBinary", &dxfRW::setBinary)
-    // .function("write", &dxfRW::write, allow_raw_pointer<DRW_Interface*>())
+    .function("write", &dxfRW::write, allow_raw_pointer<DRW_Interface*>())
     .function("writeLineType", &dxfRW::writeLineType, allow_raw_pointer<DRW_LType*>())
     .function("writeLayer", &dxfRW::writeLayer, allow_raw_pointer<DRW_Layer*>())
     .function("writeDimstyle", &dxfRW::writeDimstyle, allow_raw_pointer<DRW_Dimstyle*>())
@@ -881,7 +921,7 @@ EMSCRIPTEN_BINDINGS(dxfRW) {
 EMSCRIPTEN_BINDINGS(dwgR) {
   class_<dwgR>("dwgR")
     // .constructor<const char*>()
-    // .function("read", &dwgR::read, allow_raw_pointer<DRW_Interface*>())
+    .function("read", &dwgR::read, allow_raw_pointer<DRW_Interface*>())
     .function("getPreview", &dwgR::getPreview)
     .function("getVersion", &dwgR::getVersion)
     .function("getError", &dwgR::getError)
