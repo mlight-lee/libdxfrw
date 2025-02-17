@@ -87,7 +87,7 @@ public:
 
 protected:
     void parseCode(int code, dxfReader *reader);
-    virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) = 0;
+    virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) { return false; }
     bool parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer* strBuf, duint32 bs=0);
     void reset(){
         flags =0;
