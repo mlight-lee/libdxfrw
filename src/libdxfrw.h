@@ -13,6 +13,7 @@
 #ifndef LIBDXFRW_H
 #define LIBDXFRW_H
 
+#include <emscripten/bind.h>
 #include <string>
 #include "drw_entities.h"
 #include "drw_objects.h"
@@ -144,5 +145,12 @@ private:
     int currHandle;
 
 };
+
+// Binding code
+EMSCRIPTEN_BINDINGS(dxfRW) {
+  emscripten::class_<dxfRW>("dxfRW")
+    .constructor<const char*>()
+    ;
+}
 
 #endif // LIBDXFRW_H

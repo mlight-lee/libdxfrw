@@ -13,6 +13,7 @@
 #ifndef DRW_DBG_H
 #define DRW_DBG_H
 
+#include <emscripten/bind.h>
 #include <string>
 #include <iostream>
 //#include <iomanip>
@@ -57,5 +58,11 @@ private:
     print_none* prClass;
 };
 
+// Binding code
+EMSCRIPTEN_BINDINGS(DRW_dbg) {
+  emscripten::class_<DRW_dbg>("DRW_dbg")
+    .constructor<>()
+    ;
+}
 
 #endif // DRW_DBG_H

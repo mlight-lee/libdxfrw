@@ -13,7 +13,7 @@
 #ifndef DRW_HEADER_H
 #define DRW_HEADER_H
 
-
+#include <emscripten/bind.h>
 #include <map>
 #include "drw_base.h"
 
@@ -101,6 +101,13 @@ private:
     duint32 vportCtrl;
     duint32 vpEntHeaderCtrl;
 };
+
+// Binding code
+EMSCRIPTEN_BINDINGS(DRW_Header) {
+  emscripten::class_<DRW_Header>("DRW_Header")
+    .constructor<>()
+    ;
+}
 
 #endif
 
