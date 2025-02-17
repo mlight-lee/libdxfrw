@@ -153,7 +153,7 @@ public:
         extData.clear();
     }
 
-    virtual void applyExtrusion() = 0;
+    virtual void applyExtrusion() {}
 
 protected:
     //parses dxf pair to read entity
@@ -162,7 +162,7 @@ protected:
     void calculateAxis(DRW_Coord extPoint);
     //apply extrusion to @extPoint and return data in @point
     void extrudePoint(DRW_Coord extPoint, DRW_Coord *point);
-    virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0)=0;
+    virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) { return false; }
     //parses dwg common start part to read entity
     bool parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer* strBuf, duint32 bs=0);
     //parses dwg common handles part to read entity

@@ -11,6 +11,7 @@ This is a forked version of libdxfrw by adding supports to build it as WebAssemb
 mkdir build
 cd build
 emconfigure ../configure
+cd src
 emmake make
-emcc -O2 --bind src/bindings.o src/*.o src/intern/*.o -o src/libdxfrw.js
+emcc -O2 -lembind *.o intern/*.o -o libdxfrw.js -s MODULARIZE=1 -s EXPORT_NAME="createModule" --emit-tsd libdxfrw.d.ts
 ```

@@ -1,14 +1,49 @@
+#include <string>
 #include <emscripten/bind.h>
 #include "intern/drw_dbg.h"
+// #include "intern/dxfwriter.h"
 #include "drw_base.h"
 #include "drw_entities.h"
 #include "drw_header.h"
 #include "libdxfrw.h"
+#include "libdwgr.h"
 
 using namespace emscripten;
 
+// EMSCRIPTEN_BINDINGS(dxf_writer) {
+//   class_<dxfWriter>("dxfWriter")
+//     .function("writeUtf8String", &dxfWriter::writeUtf8String)
+//     .function("writeUtf8Caps", &dxfWriter::writeUtf8Caps)
+//     .function("fromUtf8String", &dxfWriter::fromUtf8String)
+//     .function("setVersion", &dxfWriter::setVersion, allow_raw_pointer<std::string*>())
+//     .function("setCodePage", &dxfWriter::setCodePage, allow_raw_pointer<std::string*>())
+//     .function("getCodePage", &dxfWriter::getCodePage)
+//     .function("writeString", &dxfWriterBinary::writeString)
+//     .function("writeInt16", &dxfWriterBinary::writeInt16)
+//     .function("writeInt32", &dxfWriterBinary::writeInt32)
+//     .function("writeInt64", &dxfWriterBinary::writeInt64)
+//     .function("writeDouble", &dxfWriterBinary::writeDouble)
+//     .function("writeBool", &dxfWriterBinary::writeBool);
+
+//   class_<dxfWriterBinary, base<dxfWriter>>("dxfWriterBinary")
+//     .function("writeString", &dxfWriterBinary::writeString)
+//     .function("writeInt16", &dxfWriterBinary::writeInt16)
+//     .function("writeInt32", &dxfWriterBinary::writeInt32)
+//     .function("writeInt64", &dxfWriterBinary::writeInt64)
+//     .function("writeDouble", &dxfWriterBinary::writeDouble)
+//     .function("writeBool", &dxfWriterBinary::writeBool);
+
+//   class_<dxfWriterAscii, base<dxfWriter>>("dxfWriterAscii")
+//     .function("writeString", &dxfWriterAscii::writeString)
+//     .function("writeInt16", &dxfWriterAscii::writeInt16)
+//     .function("writeInt32", &dxfWriterAscii::writeInt32)
+//     .function("writeInt64", &dxfWriterAscii::writeInt64)
+//     .function("writeDouble", &dxfWriterAscii::writeDouble)
+//     .function("writeBool", &dxfWriterAscii::writeBool);
+// }
+
 EMSCRIPTEN_BINDINGS(DRW_base) {
-  enum_<DRW::Version>("Version")
+  enum_<DRW::Version>("DRW_Version")
     .value("UNKNOWNV", DRW::UNKNOWNV)
     .value("AC1006", DRW::AC1006)
     .value("AC1009", DRW::AC1009)
@@ -20,7 +55,7 @@ EMSCRIPTEN_BINDINGS(DRW_base) {
     .value("AC1024", DRW::AC1024)
     .value("AC1027", DRW::AC1027);
 
-  enum_<DRW::error>("Error")
+  enum_<DRW::error>("DWR_Error")
     .value("BAD_NONE", DRW::BAD_NONE)
     .value("BAD_UNKNOWN", DRW::BAD_UNKNOWN)
     .value("BAD_OPEN", DRW::BAD_OPEN)
@@ -35,34 +70,34 @@ EMSCRIPTEN_BINDINGS(DRW_base) {
     .value("BAD_READ_ENTITIES", DRW::BAD_READ_ENTITIES)
     .value("BAD_READ_OBJECTS", DRW::BAD_READ_OBJECTS);
 
-  enum_<DRW::DBG_LEVEL>("DBG_LEVEL")
+  enum_<DRW::DBG_LEVEL>("DRW_DBG_LEVEL")
     .value("NONE", DRW::NONE)
     .value("DEBUG", DRW::DEBUG);
 
-  enum_<DRW::ColorCodes>("ColorCodes")
+  enum_<DRW::ColorCodes>("DRW_ColorCodes")
     .value("ColorByLayer", DRW::ColorByLayer)
     .value("ColorByBlock", DRW::ColorByBlock);
 
-  enum_<DRW::Space>("Space")
+  enum_<DRW::Space>("DRW_Space")
     .value("ModelSpace", DRW::ModelSpace)
     .value("PaperSpace", DRW::PaperSpace);
 
-  enum_<DRW::HandleCodes>("HandleCodes")
+  enum_<DRW::HandleCodes>("DRW_HandleCodes")
     .value("NoHandle", DRW::NoHandle);
 
-  enum_<DRW::ShadowMode>("ShadowMode")
+  enum_<DRW::ShadowMode>("DRW_ShadowMode")
     .value("CastAndReceieveShadows", DRW::CastAndReceieveShadows)
     .value("CastShadows", DRW::CastShadows)
     .value("ReceiveShadows", DRW::ReceiveShadows)
     .value("IgnoreShadows", DRW::IgnoreShadows);
 
-  enum_<DRW::MaterialCodes>("MaterialCodes")
+  enum_<DRW::MaterialCodes>("DRW_MaterialCodes")
     .value("MaterialByLayer", DRW::MaterialByLayer);
 
-  enum_<DRW::PlotStyleCodes>("PlotStyleCodes")
+  enum_<DRW::PlotStyleCodes>("DRW_PlotStyleCodes")
     .value("DefaultPlotStyle", DRW::DefaultPlotStyle);
 
-  enum_<DRW::TransparencyCodes>("TransparencyCodes")
+  enum_<DRW::TransparencyCodes>("DRW_TransparencyCodes")
     .value("Opaque", DRW::Opaque)
     .value("Transparent", DRW::Transparent);
 
@@ -92,11 +127,6 @@ EMSCRIPTEN_BINDINGS(DRW_base) {
 
   class_<DRW_Variant>("DRW_Variant")
     .constructor<>()
-    .constructor<int, dint32>()
-    .constructor<int, duint32>()
-    .constructor<int, double>()
-    .constructor<int, UTF8STRING>()
-    .constructor<int, DRW_Coord>()
     .function("addString", &DRW_Variant::addString)
     .function("addInt", &DRW_Variant::addInt)
     .function("addDouble", &DRW_Variant::addDouble)
@@ -107,13 +137,13 @@ EMSCRIPTEN_BINDINGS(DRW_base) {
     .function("type", &DRW_Variant::type)
     .function("code", &DRW_Variant::code);
 
-  class_<dwgHandle>("dwgHandle")
+  class_<dwgHandle>("DRW_dwgHandle")
     .constructor<>()
     .property("code", &dwgHandle::code)
     .property("size", &dwgHandle::size)
     .property("ref", &dwgHandle::ref);
 
-  enum_<DRW_LW_Conv::lineWidth>("LineWidth")
+  enum_<DRW_LW_Conv::lineWidth>("DRW_LineWidth")
     .value("width00", DRW_LW_Conv::width00)
     .value("width01", DRW_LW_Conv::width01)
     .value("width02", DRW_LW_Conv::width02)
@@ -158,7 +188,7 @@ EMSCRIPTEN_BINDINGS(DRW_dbg) {
     .class_function("getInstance", &DRW_dbg::getInstance, allow_raw_pointer<DRW_dbg*>())
     .function("setLevel", &DRW_dbg::setLevel)
     .function("getLevel", &DRW_dbg::getLevel)
-    .function("printString", select_overload<void(const std::string)>(&DRW_dbg::print))
+    //.function("printString", select_overload<void(const std::string)>(&DRW_dbg::print))
     .function("printInt", select_overload<void(int)>(&DRW_dbg::print))
     .function("printUnsignedInt", select_overload<void(unsigned int)>(&DRW_dbg::print))
     .function("printLongLongInt", select_overload<void(long long int)>(&DRW_dbg::print))
@@ -171,20 +201,24 @@ EMSCRIPTEN_BINDINGS(DRW_dbg) {
     .function("printPT", &DRW_dbg::printPT);
 }
 
-EMSCRIPTEN_BINDINGS(DRW_Header) {
-  class_<DRW_Header>("DRW_Header")
-    .constructor<>()
-    .function("addDouble", &DRW_Header::addDouble)
-    .function("addInt", &DRW_Header::addInt)
-    .function("addStr", &DRW_Header::addStr)
-    .function("addCoord", &DRW_Header::addCoord)
-    .function("getComments", &DRW_Header::getComments)
-    .function("write", &DRW_Header::write, allow_raw_pointer<dxfWriter*>())
-    .function("addComment", &DRW_Header::addComment)
-    .property("vars", &DRW_Header::vars);
-}
+// EMSCRIPTEN_BINDINGS(DRW_Header) {
+//   class_<DRW_Header>("DRW_Header")
+//     .constructor<>()
+//     .function("addDouble", &DRW_Header::addDouble)
+//     .function("addInt", &DRW_Header::addInt)
+//     .function("addStr", &DRW_Header::addStr)
+//     .function("addCoord", &DRW_Header::addCoord)
+//     .function("getComments", &DRW_Header::getComments)
+//     // .function("write", &DRW_Header::write, allow_raw_pointer<dxfWriter*>())
+//     .function("addComment", &DRW_Header::addComment)
+//     .property("vars", &DRW_Header::vars);
+// }
 
 EMSCRIPTEN_BINDINGS(DRW_Objects) {
+  register_vector<DRW_Variant*>("vector<DRW_Variant>");
+  register_vector<double>("vector<double>");
+  //register_map<std::string, std::string>("map<string, string>");
+
   enum_<DRW::TTYPE>("TTYPE")
     .value("UNKNOWNT", DRW::UNKNOWNT)
     .value("LTYPE", DRW::LTYPE)
@@ -303,6 +337,18 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
     .property("insUnits", &DRW_Block_Record::insUnits)
     .property("basePoint", &DRW_Block_Record::basePoint);
 
+  class_<DRW_Textstyle, base<DRW_TableEntry>>("DRW_Textstyle")  
+    .constructor()
+    .function("reset", &DRW_Textstyle::reset)
+    .property("height", &DRW_Textstyle::height)
+    .property("width", &DRW_Textstyle::width)
+    .property("oblique", &DRW_Textstyle::oblique)
+    .property("genFlag", &DRW_Textstyle::genFlag)
+    .property("lastHeight", &DRW_Textstyle::lastHeight)
+    .property("font", &DRW_Textstyle::font)
+    .property("bigFont", &DRW_Textstyle::bigFont)
+    .property("fontFamily", &DRW_Textstyle::fontFamily);
+
   class_<DRW_Vport, base<DRW_TableEntry>>("DRW_Vport")
     .constructor<>()
     .function("reset", &DRW_Vport::reset)
@@ -341,19 +387,504 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
     .property("up", &DRW_ImageDef::up)
     .property("vp", &DRW_ImageDef::vp)
     .property("loaded", &DRW_ImageDef::loaded)
-    .property("resolution", &DRW_ImageDef::resolution)
-    .property("reactors", &DRW_ImageDef::reactors);
+    .property("resolution", &DRW_ImageDef::resolution);
+    //.property("reactors", &DRW_ImageDef::reactors);
 
   class_<DRW_AppId, base<DRW_TableEntry>>("DRW_AppId")
     .constructor<>()
-    .function("reset", &DRW_AppId::reset)
-    .property("flags", &DRW_AppId::flags)
-    .property("name", &DRW_AppId::name);
+    .function("reset", &DRW_AppId::reset);
 }
 
-// Binding code
+EMSCRIPTEN_BINDINGS(DRW_entities) {
+  register_vector<DRW_Vertex*>("vector<DRW_Vertex>");
+  register_vector<DRW_Vertex2D*>("vector<DRW_Vertex2D>");
+  register_vector<DRW_Coord*>("vector<DRW_Coord>");
+  register_vector<DRW_Entity*>("vector<DRW_Entity>");
+  register_vector<DRW_HatchLoop*>("vector<DRW_HatchLoop>");
+
+  enum_<DRW::ETYPE>("DRW_ETYPE")
+    .value("E3DFACE", DRW::E3DFACE)
+    .value("ARC", DRW::ARC)
+    .value("BLOCK", DRW::BLOCK)
+    .value("CIRCLE", DRW::CIRCLE)
+    .value("DIMENSION", DRW::DIMENSION)
+    .value("DIMALIGNED", DRW::DIMALIGNED)
+    .value("DIMLINEAR", DRW::DIMLINEAR)
+    .value("DIMRADIAL", DRW::DIMRADIAL)
+    .value("DIMDIAMETRIC", DRW::DIMDIAMETRIC)
+    .value("DIMANGULAR", DRW::DIMANGULAR)
+    .value("DIMANGULAR3P", DRW::DIMANGULAR3P)
+    .value("DIMORDINATE", DRW::DIMORDINATE)
+    .value("ELLIPSE", DRW::ELLIPSE)
+    .value("HATCH", DRW::HATCH)
+    .value("IMAGE", DRW::IMAGE)
+    .value("INSERT", DRW::INSERT)
+    .value("LEADER", DRW::LEADER)
+    .value("LINE", DRW::LINE)
+    .value("LWPOLYLINE", DRW::LWPOLYLINE)
+    .value("MTEXT", DRW::MTEXT)
+    .value("POINT", DRW::POINT)
+    .value("POLYLINE", DRW::POLYLINE)
+    .value("RAY", DRW::RAY)
+    .value("SOLID", DRW::SOLID)
+    .value("SPLINE", DRW::SPLINE)
+    .value("TEXT", DRW::TEXT)
+    .value("TRACE", DRW::TRACE)
+    .value("UNDERLAY", DRW::UNDERLAY)
+    .value("VERTEX", DRW::VERTEX)
+    .value("VIEWPORT", DRW::VIEWPORT)
+    .value("XLINE", DRW::XLINE)
+    .value("UNKNOWN", DRW::UNKNOWN);
+
+  class_<DRW_Entity>("DRW_Entity")
+    .constructor<>()
+    .function("reset", &DRW_Entity::reset)
+    .function("applyExtrusion", &DRW_Entity::applyExtrusion)
+    .property("eType", &DRW_Entity::eType)
+    .property("handle", &DRW_Entity::handle)
+    .property("parentHandle", &DRW_Entity::parentHandle)
+    .property("space", &DRW_Entity::space)
+    .property("layer", &DRW_Entity::layer)
+    .property("lineType", &DRW_Entity::lineType)
+    .property("material", &DRW_Entity::material)
+    .property("color", &DRW_Entity::color)
+    .property("lWeight", &DRW_Entity::lWeight)
+    .property("ltypeScale", &DRW_Entity::ltypeScale)
+    .property("visible", &DRW_Entity::visible)
+    .property("numProxyGraph", &DRW_Entity::numProxyGraph)
+    .property("proxyGraphics", &DRW_Entity::proxyGraphics)
+    .property("color24", &DRW_Entity::color24)
+    .property("colorName", &DRW_Entity::colorName)
+    .property("transparency", &DRW_Entity::transparency)
+    .property("plotStyle", &DRW_Entity::plotStyle)
+    .property("shadow", &DRW_Entity::shadow)
+    .property("haveExtrusion", &DRW_Entity::haveExtrusion)
+    .property("extData", &DRW_Entity::extData);
+
+  class_<DRW_Point, emscripten::base<DRW_Entity>>("DRW_Point")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Point::applyExtrusion)
+    .property("basePoint", &DRW_Point::basePoint)
+    .property("thickness", &DRW_Point::thickness)
+    .property("extPoint", &DRW_Point::extPoint);
+
+  class_<DRW_Line, base<DRW_Point>>("DRW_Line")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Line::applyExtrusion)
+    .property("secPoint", &DRW_Line::secPoint);
+
+  class_<DRW_Ray, base<DRW_Line>>("DRW_Ray")
+    .constructor<>();
+
+  class_<DRW_Xline, base<DRW_Ray>>("DRW_Xline")
+    .constructor<>();
+
+  class_<DRW_Circle, base<DRW_Point>>("DRW_Circle")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Circle::applyExtrusion)
+    .property("radious", &DRW_Circle::radious);
+
+  class_<DRW_Arc, base<DRW_Circle>>("DRW_Arc")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Arc::applyExtrusion)
+    .function("center", &DRW_Arc::center)
+    .function("radius", &DRW_Arc::radius)
+    .function("startAngle", &DRW_Arc::startAngle)
+    .function("endAngle", &DRW_Arc::endAngle)
+    .function("thick", &DRW_Arc::thick)
+    .function("extrusion", &DRW_Arc::extrusion)
+    .property("staangle", &DRW_Arc::staangle)
+    .property("endangle", &DRW_Arc::endangle)
+    .property("isccw", &DRW_Arc::isccw);
+
+  class_<DRW_Ellipse, base<DRW_Line>>("DRW_Ellipse")
+    .constructor<>()
+    .function("toPolyline", &DRW_Ellipse::toPolyline, allow_raw_pointer<DRW_Polyline*>())
+    .function("applyExtrusion", &DRW_Ellipse::applyExtrusion)
+    .property("ratio", &DRW_Ellipse::ratio)
+    .property("staparam", &DRW_Ellipse::staparam)
+    .property("endparam", &DRW_Ellipse::endparam)
+    .property("isccw", &DRW_Ellipse::isccw);
+
+  class_<DRW_Trace, base<DRW_Line>>("DRW_Trace")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Trace::applyExtrusion)
+    .property("thirdPoint", &DRW_Trace::thirdPoint)
+    .property("fourPoint", &DRW_Trace::fourPoint);
+
+  class_<DRW_Solid, base<DRW_Trace>>("DRW_Solid")
+    .constructor<>()
+    .function("firstCorner", &DRW_Solid::firstCorner)
+    .function("secondCorner", &DRW_Solid::secondCorner)
+    .function("thirdCorner", &DRW_Solid::thirdCorner)
+    .function("fourthCorner", &DRW_Solid::fourthCorner)
+    .function("thick", &DRW_Solid::thick)
+    .function("elevation", &DRW_Solid::elevation)
+    .function("extrusion", &DRW_Solid::extrusion);
+
+  enum_<DRW_3Dface::InvisibleEdgeFlags>("InvisibleEdgeFlags")
+    .value("NoEdge", DRW_3Dface::NoEdge)
+    .value("FirstEdge", DRW_3Dface::FirstEdge)
+    .value("SecondEdge", DRW_3Dface::SecodEdge)
+    .value("ThirdEdge", DRW_3Dface::ThirdEdge)
+    .value("FourthEdge", DRW_3Dface::FourthEdge)
+    .value("AllEdges", DRW_3Dface::AllEdges);
+
+  class_<DRW_3Dface, base<DRW_Trace>>("DRW_3Dface")
+    .constructor<>()
+    .function("firstCorner", &DRW_3Dface::firstCorner)
+    .function("secondCorner", &DRW_3Dface::secondCorner)
+    .function("thirdCorner", &DRW_3Dface::thirdCorner)
+    .function("fourthCorner", &DRW_3Dface::fourthCorner)
+    .function("edgeFlags", &DRW_3Dface::edgeFlags)
+    .function("applyExtrusion", &DRW_3Dface::applyExtrusion)
+    .property("invisibleflag", &DRW_3Dface::invisibleflag);
+
+  class_<DRW_Block, base<DRW_Point>>("DRW_Block")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Block::applyExtrusion)
+    .property("name", &DRW_Block::name)
+    .property("flags", &DRW_Block::flags);
+
+  class_<DRW_Insert, base<DRW_Point>>("DRW_Insert")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Insert::applyExtrusion)
+    .property("name", &DRW_Insert::name)
+    .property("xscale", &DRW_Insert::xscale)
+    .property("yscale", &DRW_Insert::yscale)
+    .property("zscale", &DRW_Insert::zscale)
+    .property("angle", &DRW_Insert::angle)
+    .property("colcount", &DRW_Insert::colcount)
+    .property("rowcount", &DRW_Insert::rowcount)
+    .property("colspace", &DRW_Insert::colspace)
+    .property("rowspace", &DRW_Insert::rowspace)
+    .property("blockRecH", &DRW_Insert::blockRecH)
+    .property("seqendH", &DRW_Insert::seqendH);
+
+  class_<DRW_LWPolyline, base<DRW_Entity>>("DRW_LWPolyline")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_LWPolyline::applyExtrusion)
+    .function("addVertex", select_overload<void(DRW_Vertex2D)>(&DRW_LWPolyline::addVertex))
+    .property("vertexnum", &DRW_LWPolyline::vertexnum)
+    .property("flags", &DRW_LWPolyline::flags)
+    .property("width", &DRW_LWPolyline::width)
+    .property("elevation", &DRW_LWPolyline::elevation)
+    .property("thickness", &DRW_LWPolyline::thickness)
+    .property("extPoint", &DRW_LWPolyline::extPoint)
+    .property("vertlist", &DRW_LWPolyline::vertlist);
+
+  enum_<DRW_Text::VAlign>("VAlign")
+    .value("VBaseLine", DRW_Text::VBaseLine)
+    .value("VBottom", DRW_Text::VBottom)
+    .value("VMiddle", DRW_Text::VMiddle)
+    .value("VTop", DRW_Text::VTop);
+
+  enum_<DRW_Text::HAlign>("HAlign")
+    .value("HLeft", DRW_Text::HLeft)
+    .value("HCenter", DRW_Text::HCenter)
+    .value("HRight", DRW_Text::HRight)
+    .value("HAligned", DRW_Text::HAligned)
+    .value("HMiddle", DRW_Text::HMiddle)
+    .value("HFit", DRW_Text::HFit);
+
+  class_<DRW_Text, base<DRW_Entity>>("DRW_Text")
+    .constructor<>()
+    .property("height", &DRW_Text::height)
+    .property("text", &DRW_Text::text)
+    .property("angle", &DRW_Text::angle)
+    .property("widthscale", &DRW_Text::widthscale)
+    .property("oblique", &DRW_Text::oblique)
+    .property("style", &DRW_Text::style)
+    .property("textgen", &DRW_Text::textgen)
+    .property("alignH", &DRW_Text::alignH)
+    .property("alignV", &DRW_Text::alignV)
+    .property("styleH", &DRW_Text::styleH)
+    .function("applyExtrusion", &DRW_Text::applyExtrusion);
+
+  enum_<DRW_MText::Attach>("Attach")
+    .value("TopLeft", DRW_MText::TopLeft)
+    .value("TopCenter", DRW_MText::TopCenter)
+    .value("TopRight", DRW_MText::TopRight)
+    .value("MiddleLeft", DRW_MText::MiddleLeft)
+    .value("MiddleCenter", DRW_MText::MiddleCenter)
+    .value("MiddleRight", DRW_MText::MiddleRight)
+    .value("BottomLeft", DRW_MText::BottomLeft)
+    .value("BottomCenter", DRW_MText::BottomCenter)
+    .value("BottomRight", DRW_MText::BottomRight);
+
+  class_<DRW_MText, base<DRW_Text>>("DRW_MText")
+    .constructor<>()
+    .property("interlin", &DRW_MText::interlin);
+
+  class_<DRW_Vertex, base<DRW_Point>>("DRW_Vertex")
+    .constructor<>()
+    .constructor<double, double, double, double>()  // Constructor with parameters
+    .property("stawidth", &DRW_Vertex::stawidth)
+    .property("endwidth", &DRW_Vertex::endwidth)
+    .property("bulge", &DRW_Vertex::bulge)
+    .property("flags", &DRW_Vertex::flags)
+    .property("tgdir", &DRW_Vertex::tgdir)
+    .property("vindex1", &DRW_Vertex::vindex1)
+    .property("vindex2", &DRW_Vertex::vindex2)
+    .property("vindex3", &DRW_Vertex::vindex3)
+    .property("vindex4", &DRW_Vertex::vindex4)
+    .property("identifier", &DRW_Vertex::identifier);
+
+  class_<DRW_Polyline, base<DRW_Point>>("DRW_Polyline")
+    .constructor<>()
+    .property("defstawidth", &DRW_Polyline::defstawidth)
+    .property("defendwidth", &DRW_Polyline::defendwidth)
+    .property("flags", &DRW_Polyline::flags)
+    .property("vertexcount", &DRW_Polyline::vertexcount)
+    .property("facecount", &DRW_Polyline::facecount)
+    .property("smoothM", &DRW_Polyline::smoothM)
+    .property("smoothN", &DRW_Polyline::smoothN)
+    .property("curvetype", &DRW_Polyline::curvetype)
+    .function("addVertex", &DRW_Polyline::addVertex)
+    .function("appendVertex", &DRW_Polyline::appendVertex, allow_raw_pointer<DRW_Vertex*>())
+    .property("vertlist", &DRW_Polyline::vertlist);
+
+  class_<DRW_Spline, base<DRW_Entity>>("DRW_Spline")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Spline::applyExtrusion)
+    .property("normalVec", &DRW_Spline::normalVec)
+    .property("tgStart", &DRW_Spline::tgStart)
+    .property("tgEnd", &DRW_Spline::tgEnd)
+    .property("flags", &DRW_Spline::flags)
+    .property("degree", &DRW_Spline::degree)
+    .property("nknots", &DRW_Spline::nknots)
+    .property("ncontrol", &DRW_Spline::ncontrol)
+    .property("nfit", &DRW_Spline::nfit)
+    .property("tolknot", &DRW_Spline::tolknot)
+    .property("tolcontrol", &DRW_Spline::tolcontrol)
+    .property("tolfit", &DRW_Spline::tolfit)
+    .property("knotslist", &DRW_Spline::knotslist)
+    .property("controllist", &DRW_Spline::controllist)
+    .property("fitlist", &DRW_Spline::fitlist);
+
+  class_<DRW_HatchLoop>("DRW_HatchLoop")
+    .constructor<int>()
+    .function("update", &DRW_HatchLoop::update)
+    .property("type", &DRW_HatchLoop::type)
+    .property("numedges", &DRW_HatchLoop::numedges)
+    .property("objlist", &DRW_HatchLoop::objlist);
+
+  class_<DRW_Hatch, base<DRW_Point>>("DRW_Hatch")
+    .constructor<>()
+    .function("appendLoop", &DRW_Hatch::appendLoop, allow_raw_pointer<DRW_HatchLoop*>())
+    .function("applyExtrusion", &DRW_Hatch::applyExtrusion)
+    .property("name", &DRW_Hatch::name)
+    .property("solid", &DRW_Hatch::solid)
+    .property("associative", &DRW_Hatch::associative)
+    .property("hstyle", &DRW_Hatch::hstyle)
+    .property("hpattern", &DRW_Hatch::hpattern)
+    .property("doubleflag", &DRW_Hatch::doubleflag)
+    .property("loopsnum", &DRW_Hatch::loopsnum)
+    .property("angle", &DRW_Hatch::angle)
+    .property("scale", &DRW_Hatch::scale)
+    .property("deflines", &DRW_Hatch::deflines)
+    .property("looplist", &DRW_Hatch::looplist);
+
+  class_<DRW_Image, base<DRW_Line>>("DRW_Image")
+    .constructor<>()
+    .property("ref", &DRW_Image::ref)
+    .property("vVector", &DRW_Image::vVector)  // Assuming DRW_Coord is also bound
+    .property("sizeu", &DRW_Image::sizeu)
+    .property("sizev", &DRW_Image::sizev)
+    .property("dz", &DRW_Image::dz)
+    .property("clip", &DRW_Image::clip)
+    .property("brightness", &DRW_Image::brightness)
+    .property("contrast", &DRW_Image::contrast)
+    .property("fade", &DRW_Image::fade);
+
+  class_<DRW_Dimension, base<DRW_Entity>>("DRW_Dimension")
+    .constructor<>()
+    .function("getDefPoint", &DRW_Dimension::getDefPoint)
+    .function("setDefPoint", &DRW_Dimension::setDefPoint)
+    .function("getTextPoint", &DRW_Dimension::getTextPoint)
+    .function("setTextPoint", &DRW_Dimension::setTextPoint)
+    .function("getStyle", &DRW_Dimension::getStyle)
+    .function("setStyle", &DRW_Dimension::setStyle)
+    .function("getAlign", &DRW_Dimension::getAlign)
+    .function("setAlign", &DRW_Dimension::setAlign)
+    .function("getTextLineStyle", &DRW_Dimension::getTextLineStyle)
+    .function("setTextLineStyle", &DRW_Dimension::setTextLineStyle)
+    .function("getText", &DRW_Dimension::getText)
+    .function("setText", &DRW_Dimension::setText)
+    .function("getTextLineFactor", &DRW_Dimension::getTextLineFactor)
+    .function("setTextLineFactor", &DRW_Dimension::setTextLineFactor)
+    .function("getDir", &DRW_Dimension::getDir)
+    .function("setDir", &DRW_Dimension::setDir)
+    .function("getExtrusion", &DRW_Dimension::getExtrusion)
+    .function("setExtrusion", &DRW_Dimension::setExtrusion)
+    .function("getName", &DRW_Dimension::getName)
+    .function("setName", &DRW_Dimension::setName);
+
+  class_<DRW_DimAligned, base<DRW_Dimension>>("DRW_DimAligned")
+    .constructor<>()
+    .constructor<const DRW_Dimension&>()
+    .function("getClonePoint", &DRW_DimAligned::getClonepoint)
+    .function("setClonePoint", &DRW_DimAligned::setClonePoint)
+    .function("getDimPoint", &DRW_DimAligned::getDimPoint)
+    .function("setDimPoint", &DRW_DimAligned::setDimPoint)
+    .function("getDef1Point", &DRW_DimAligned::getDef1Point)
+    .function("setDef1Point", &DRW_DimAligned::setDef1Point)
+    .function("getDef2Point", &DRW_DimAligned::getDef2Point)
+    .function("setDef2Point", &DRW_DimAligned::setDef2Point);
+
+  class_<DRW_DimLinear, base<DRW_DimAligned>>("DRW_DimLinear")
+    .constructor<>()
+    .constructor<const DRW_Dimension&>()
+    .function("getAngle", &DRW_DimLinear::getAngle)
+    .function("setAngle", &DRW_DimLinear::setAngle)
+    .function("getOblique", &DRW_DimLinear::getOblique)
+    .function("setOblique", &DRW_DimLinear::setOblique);
+
+  class_<DRW_DimRadial, base<DRW_Dimension>>("DRW_DimRadial")
+    .constructor<>()
+    .constructor<const DRW_Dimension&>()  // Bind copy constructor
+    .function("getCenterPoint", &DRW_DimRadial::getCenterPoint)
+    .function("setCenterPoint", &DRW_DimRadial::setCenterPoint)
+    .function("getDiameterPoint", &DRW_DimRadial::getDiameterPoint)
+    .function("setDiameterPoint", &DRW_DimRadial::setDiameterPoint)
+    .function("getLeaderLength", &DRW_DimRadial::getLeaderLength)
+    .function("setLeaderLength", &DRW_DimRadial::setLeaderLength);
+
+  class_<DRW_DimDiametric, base<DRW_Dimension>>("DRW_DimDiametric")
+    .constructor<>()
+    .constructor<const DRW_Dimension&>()
+    .function("getDiameter1Point", &DRW_DimDiametric::getDiameter1Point)
+    .function("setDiameter1Point", &DRW_DimDiametric::setDiameter1Point)
+    .function("getDiameter2Point", &DRW_DimDiametric::getDiameter2Point)
+    .function("setDiameter2Point", &DRW_DimDiametric::setDiameter2Point)
+    .function("getLeaderLength", &DRW_DimDiametric::getLeaderLength)
+    .function("setLeaderLength", &DRW_DimDiametric::setLeaderLength);
+
+  class_<DRW_DimAngular, base<DRW_Dimension>>("DRW_DimAngular")
+    .constructor<>()
+    .constructor<const DRW_Dimension&>()  // Bind copy constructor
+    .function("getFirstLine1", &DRW_DimAngular::getFirstLine1)
+    .function("setFirstLine1", &DRW_DimAngular::setFirstLine1)
+    .function("getFirstLine2", &DRW_DimAngular::getFirstLine2)
+    .function("setFirstLine2", &DRW_DimAngular::setFirstLine2)
+    .function("getSecondLine1", &DRW_DimAngular::getSecondLine1)
+    .function("setSecondLine1", &DRW_DimAngular::setSecondLine1)
+    .function("getSecondLine2", &DRW_DimAngular::getSecondLine2)
+    .function("setSecondLine2", &DRW_DimAngular::setSecondLine2)
+    .function("getDimPoint", &DRW_DimAngular::getDimPoint)
+    .function("setDimPoint", &DRW_DimAngular::setDimPoint);
+
+  class_<DRW_DimAngular3p, base<DRW_Dimension>>("DRW_DimAngular3p")
+    .constructor<>()
+    .constructor<const DRW_Dimension&>()  // Bind copy constructor
+    .function("getFirstLine", &DRW_DimAngular3p::getFirstLine)
+    .function("setFirstLine", &DRW_DimAngular3p::setFirstLine)
+    .function("getSecondLine", &DRW_DimAngular3p::getSecondLine)
+    .function("setSecondLine", &DRW_DimAngular3p::setSecondLine)
+    .function("getVertexPoint", &DRW_DimAngular3p::getVertexPoint)
+    .function("SetVertexPoint", &DRW_DimAngular3p::SetVertexPoint)
+    .function("getDimPoint", &DRW_DimAngular3p::getDimPoint)
+    .function("setDimPoint", &DRW_DimAngular3p::setDimPoint);
+
+  class_<DRW_DimOrdinate, base<DRW_Dimension>>("DRW_DimOrdinate")
+    .constructor<>()
+    .constructor<const DRW_Dimension&>()
+    .function("getOriginPoint", &DRW_DimOrdinate::getOriginPoint)
+    .function("setOriginPoint", &DRW_DimOrdinate::setOriginPoint)
+    .function("getFirstLine", &DRW_DimOrdinate::getFirstLine)
+    .function("setFirstLine", &DRW_DimOrdinate::setFirstLine)
+    .function("getSecondLine", &DRW_DimOrdinate::getSecondLine)
+    .function("setSecondLine", &DRW_DimOrdinate::setSecondLine);
+
+  class_<DRW_Leader, base<DRW_Entity>>("DRW_Leader")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Leader::applyExtrusion)
+    .property("style", &DRW_Leader::style)
+    .property("arrow", &DRW_Leader::arrow)
+    .property("leadertype", &DRW_Leader::leadertype)
+    .property("flag", &DRW_Leader::flag)
+    .property("hookline", &DRW_Leader::hookline)
+    .property("hookflag", &DRW_Leader::hookflag)
+    .property("textheight", &DRW_Leader::textheight)
+    .property("textwidth", &DRW_Leader::textwidth)
+    .property("vertnum", &DRW_Leader::vertnum)
+    .property("coloruse", &DRW_Leader::coloruse)
+    .property("annotHandle", &DRW_Leader::annotHandle)
+    .property("extrusionPoint", &DRW_Leader::extrusionPoint)
+    .property("horizdir", &DRW_Leader::horizdir)
+    .property("offsetblock", &DRW_Leader::offsetblock)
+    .property("offsettext", &DRW_Leader::offsettext)
+    .property("vertexList", &DRW_Leader::vertexlist);
+
+  class_<DRW_Viewport, base<DRW_Point>>("DRW_Viewport")
+    .constructor<>()
+    .function("applyExtrusion", &DRW_Viewport::applyExtrusion)
+    .property("pswidth", &DRW_Viewport::pswidth)
+    .property("psheight", &DRW_Viewport::psheight)
+    .property("vpstatus", &DRW_Viewport::vpstatus)
+    .property("vpID", &DRW_Viewport::vpID)
+    .property("centerPX", &DRW_Viewport::centerPX)
+    .property("centerPY", &DRW_Viewport::centerPY)
+    .property("snapPX", &DRW_Viewport::snapPX)
+    .property("snapPY", &DRW_Viewport::snapPY)
+    .property("snapSpPX", &DRW_Viewport::snapSpPX)
+    .property("snapSpPY", &DRW_Viewport::snapSpPY)
+    .property("viewDir", &DRW_Viewport::viewDir)
+    .property("viewTarget", &DRW_Viewport::viewTarget)
+    .property("viewLength", &DRW_Viewport::viewLength)
+    .property("frontClip", &DRW_Viewport::frontClip)
+    .property("backClip", &DRW_Viewport::backClip)
+    .property("viewHeight", &DRW_Viewport::viewHeight)
+    .property("snapAngle", &DRW_Viewport::snapAngle)
+    .property("twistAngle", &DRW_Viewport::twistAngle);
+}
+
 EMSCRIPTEN_BINDINGS(dxfRW) {
   class_<dxfRW>("dxfRW")
-    .constructor<const char*>()
-    ;
+    // .constructor<const char*>()
+    .function("setDebug", &dxfRW::setDebug)
+    // .function("read", &dxfRW::read, allow_raw_pointer<DRW_Interface*>())
+    .function("setBinary", &dxfRW::setBinary)
+    // .function("write", &dxfRW::write, allow_raw_pointer<DRW_Interface*>())
+    .function("writeLineType", &dxfRW::writeLineType, allow_raw_pointer<DRW_LType*>())
+    .function("writeLayer", &dxfRW::writeLayer, allow_raw_pointer<DRW_Layer*>())
+    .function("writeDimstyle", &dxfRW::writeDimstyle, allow_raw_pointer<DRW_Dimstyle*>())
+    .function("writeTextstyle", &dxfRW::writeTextstyle, allow_raw_pointer<DRW_Textstyle*>())
+    .function("writeVport", &dxfRW::writeVport, allow_raw_pointer<DRW_Vport*>())
+    .function("writeAppId", &dxfRW::writeAppId, allow_raw_pointer<DRW_AppId*>())
+    .function("writePoint", &dxfRW::writePoint, allow_raw_pointer<DRW_Point*>())
+    .function("writeLine", &dxfRW::writeLine, allow_raw_pointer<DRW_Line*>())
+    .function("writeRay", &dxfRW::writeRay, allow_raw_pointer<DRW_Ray*>())
+    .function("writeXline", &dxfRW::writeXline, allow_raw_pointer<DRW_Xline*>())
+    .function("writeCircle", &dxfRW::writeCircle, allow_raw_pointer<DRW_Circle*>())
+    .function("writeArc", &dxfRW::writeArc, allow_raw_pointer<DRW_Arc*>())
+    .function("writeEllipse", &dxfRW::writeEllipse, allow_raw_pointer<DRW_Ellipse*>())
+    .function("writeTrace", &dxfRW::writeTrace, allow_raw_pointer<DRW_Trace*>())
+    .function("writeSolid", &dxfRW::writeSolid, allow_raw_pointer<DRW_Solid*>())
+    .function("write3dface", &dxfRW::write3dface, allow_raw_pointer<DRW_3Dface*>())
+    .function("writeLWPolyline", &dxfRW::writeLWPolyline, allow_raw_pointer<DRW_LWPolyline*>())
+    .function("writePolyline", &dxfRW::writePolyline, allow_raw_pointer<DRW_Polyline*>())
+    .function("writeSpline", &dxfRW::writeSpline, allow_raw_pointer<DRW_Spline*>())
+    .function("writeBlockRecord", &dxfRW::writeBlockRecord)
+    .function("writeBlock", &dxfRW::writeBlock, allow_raw_pointer<DRW_Block*>())
+    .function("writeInsert", &dxfRW::writeInsert, allow_raw_pointer<DRW_Insert*>())
+    .function("writeMText", &dxfRW::writeMText, allow_raw_pointer<DRW_MText*>())
+    .function("writeText", &dxfRW::writeText, allow_raw_pointer<DRW_Text*>())
+    .function("writeHatch", &dxfRW::writeHatch, allow_raw_pointer<DRW_Hatch*>())
+    .function("writeViewport", &dxfRW::writeViewport, allow_raw_pointer<DRW_Viewport*>())
+    .function("writeImage", &dxfRW::writeImage, allow_raw_pointer<DRW_Image*>())
+    .function("writeLeader", &dxfRW::writeLeader, allow_raw_pointer<DRW_Leader*>())
+    .function("writeDimension", &dxfRW::writeDimension, allow_raw_pointer<DRW_Dimension*>())
+    .function("setEllipseParts", &dxfRW::setEllipseParts);
+}
+
+EMSCRIPTEN_BINDINGS(dwgR) {
+  class_<dwgR>("dwgR")
+    // .constructor<const char*>()
+    // .function("read", &dwgR::read, allow_raw_pointer<DRW_Interface*>())
+    .function("getPreview", &dwgR::getPreview)
+    .function("getVersion", &dwgR::getVersion)
+    .function("getError", &dwgR::getError)
+    .function("testReader", &dwgR::testReader)
+    .function("setDebug", &dwgR::setDebug);
 }
