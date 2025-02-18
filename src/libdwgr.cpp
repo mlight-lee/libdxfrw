@@ -35,9 +35,9 @@
     secObjects
 };*/
 
-dwgR::dwgR(const char* name){
+dwgR::dwgR(const std::string& data){
     DRW_DBGSL(DRW_dbg::NONE);
-    fileName = name;
+    buffer = data;
     reader = NULL;
 //    writer = NULL;
     applyExt = false;
@@ -65,8 +65,7 @@ void dwgR::setDebug(DRW::DBG_LEVEL lvl){
 bool dwgR::getPreview(){
     bool isOk = false;
 
-    std::ifstream filestr;
-    isOk = openFile(&filestr);
+    isOk = openFile();
     if (!isOk)
         return false;
 
@@ -76,7 +75,6 @@ bool dwgR::getPreview(){
     } else
         error = DRW::BAD_READ_METADATA;
 
-    filestr.close();
     if (reader != NULL) {
         delete reader;
         reader = NULL;
@@ -87,13 +85,7 @@ bool dwgR::getPreview(){
 bool dwgR::testReader(){
     bool isOk = false;
 
-    std::ifstream filestr;
-    filestr.open (fileName.c_str(), std::ios_base::in | std::ios::binary);
-    if (!filestr.is_open() || !filestr.good() ){
-        error = DRW::BAD_OPEN;
-        return isOk;
-    }
-
+    std::istringstream filestr(buffer, std::ios::binary);
     dwgBuffer fileBuf(&filestr);
     duint8 *tmpStrData = new duint8[fileBuf.size()];
     fileBuf.getBytes(tmpStrData, fileBuf.size());
@@ -133,7 +125,7 @@ bool dwgR::testReader(){
     DRW_DBG("\n dataBuf bitpos: ");DRW_DBG(dataBuf.getBitPos());
 
     delete[]tmpStrData;
-    filestr.close();
+    // filestr.close();
     DRW_DBG("\n\n");
     return isOk;
 }
@@ -146,8 +138,7 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
 
 //testReader();return false;
 
-    std::ifstream filestr;
-    isOk = openFile(&filestr);
+    isOk = openFile();
     if (!isOk)
         return false;
 
@@ -161,7 +152,7 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
     } else
         error = DRW::BAD_READ_METADATA;
 
-    filestr.close();
+    // filestr.close();
     if (reader != NULL) {
         delete reader;
         reader = NULL;
@@ -176,17 +167,13 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
  * and closes filestr.
  * Return true on succeed or false on fail
 */
-bool dwgR::openFile(std::ifstream *filestr){
+bool dwgR::openFile(){
     bool isOk = false;
     DRW_DBG("dwgR::read 1\n");
-    filestr->open (fileName.c_str(), std::ios_base::in | std::ios::binary);
-    if (!filestr->is_open() || !filestr->good() ){
-        error = DRW::BAD_OPEN;
-        return isOk;
-    }
+    std::istringstream filestr(buffer, std::ios::binary);
 
     char line[7];
-    filestr->read (line, 6);
+    filestr.read (line, 6);
     line[6]='\0';
     DRW_DBG("dwgR::read 2\n");
     DRW_DBG("dwgR::read line version: ");
@@ -200,31 +187,30 @@ bool dwgR::openFile(std::ifstream *filestr){
 //        reader = new dwgReader09(&filestr, this);
     }else if (strcmp(line, "AC1012") == 0){
         version = DRW::AC1012;
-        reader = new dwgReader15(filestr, this);
+        reader = new dwgReader15(&filestr, this);
     } else if (strcmp(line, "AC1014") == 0) {
         version = DRW::AC1014;
-        reader = new dwgReader15(filestr, this);
+        reader = new dwgReader15(&filestr, this);
     } else if (strcmp(line, "AC1015") == 0) {
         version = DRW::AC1015;
-        reader = new dwgReader15(filestr, this);
+        reader = new dwgReader15(&filestr, this);
     } else if (strcmp(line, "AC1018") == 0){
         version = DRW::AC1018;
-        reader = new dwgReader18(filestr, this);
+        reader = new dwgReader18(&filestr, this);
     } else if (strcmp(line, "AC1021") == 0) {
         version = DRW::AC1021;
-        reader = new dwgReader21(filestr, this);
+        reader = new dwgReader21(&filestr, this);
     } else if (strcmp(line, "AC1024") == 0) {
         version = DRW::AC1024;
-        reader = new dwgReader24(filestr, this);
+        reader = new dwgReader24(&filestr, this);
     } else if (strcmp(line, "AC1027") == 0) {
         version = DRW::AC1027;
-        reader = new dwgReader27(filestr, this);
+        reader = new dwgReader27(&filestr, this);
     } else
         version = DRW::UNKNOWNV;
 
     if (reader == NULL) {
         error = DRW::BAD_VERSION;
-        filestr->close();
     } else
         isOk = true;
 

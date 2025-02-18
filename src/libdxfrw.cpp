@@ -32,9 +32,9 @@
     secObjects
 };*/
 
-dxfRW::dxfRW(const char* name){
+dxfRW::dxfRW(const std::string& data){
     DRW_DBGSL(DRW_dbg::NONE);
-    fileName = name;
+    buffer = data;
     reader = NULL;
     writer = NULL;
     applyExt = false;
@@ -62,29 +62,22 @@ void dxfRW::setDebug(DRW::DBG_LEVEL lvl){
 }
 
 bool dxfRW::read(DRW_Interface *interface_, bool ext){
-    drw_assert(fileName.empty() == false);
     bool isOk = false;
     applyExt = ext;
-    std::ifstream filestr;
+    std::istringstream filestr(buffer, std::ios::binary);
     if ( interface_ == NULL )
                 return isOk;
     DRW_DBG("dxfRW::read 1def\n");
-    filestr.open (fileName.c_str(), std::ios_base::in | std::ios::binary);
-    if (!filestr.is_open())
-        return isOk;
-    if (!filestr.good())
-        return isOk;
 
     char line[22];
     char line2[22] = "AutoCAD Binary DXF\r\n";
     line2[20] = (char)26;
     line2[21] = '\0';
     filestr.read (line, 22);
-    filestr.close();
+
     iface = interface_;
     DRW_DBG("dxfRW::read 2\n");
     if (strcmp(line, line2) == 0) {
-        filestr.open (fileName.c_str(), std::ios_base::in | std::ios::binary);
         binFile = true;
         //skip sentinel
         filestr.seekg (22, std::ios::beg);
@@ -92,12 +85,11 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         DRW_DBG("dxfRW::read binary file\n");
     } else {
         binFile = false;
-        filestr.open (fileName.c_str(), std::ios_base::in);
         reader = new dxfReaderAscii(&filestr);
     }
 
     isOk = processDxf();
-    filestr.close();
+
     delete reader;
     reader = NULL;
     return isOk;
@@ -105,18 +97,16 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
 
 bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin){
     bool isOk = false;
-    std::ofstream filestr;
+    std::ostringstream filestr;
     version = ver;
     binFile = bin;
     iface = interface_;
     if (binFile) {
-        filestr.open (fileName.c_str(), std::ios_base::out | std::ios::binary | std::ios::trunc);
         //write sentinel
         filestr << "AutoCAD Binary DXF\r\n" << (char)26 << '\0';
         writer = new dxfWriterBinary(&filestr);
         DRW_DBG("dxfRW::read binary file\n");
     } else {
-        filestr.open (fileName.c_str(), std::ios_base::out | std::ios::trunc);
         writer = new dxfWriterAscii(&filestr);
         std::string comm = std::string("dxfrw ") + std::string(DRW_VERSION);
         writer->writeString(999, comm);
@@ -154,7 +144,7 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin){
     }
     writer->writeString(0, "EOF");
     filestr.flush();
-    filestr.close();
+
     isOk = true;
     delete writer;
     writer = NULL;

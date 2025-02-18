@@ -5,6 +5,7 @@
 #include "drw_base.h"
 #include "drw_entities.h"
 #include "drw_header.h"
+#include "drw_reader.h"
 #include "libdxfrw.h"
 #include "libdwgr.h"
 
@@ -201,8 +202,8 @@ EMSCRIPTEN_BINDINGS(DRW_Header) {
 }
 
 EMSCRIPTEN_BINDINGS(DRW_Objects) {
-  register_vector<DRW_Variant*>("vector<DRW_Variant>");
-  register_vector<double>("vector<double>");
+  register_vector<DRW_Variant*>("DRW_VariantList");
+  register_vector<double>("DRW_DoubleList");
   // register_map<std::string, std::string>("map<string, string>");
 
   enum_<DRW::TTYPE>("TTYPE")
@@ -382,11 +383,11 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
 }
 
 EMSCRIPTEN_BINDINGS(DRW_entities) {
-  register_vector<DRW_Vertex*>("vector<DRW_Vertex>");
-  register_vector<DRW_Vertex2D*>("vector<DRW_Vertex2D>");
-  register_vector<DRW_Coord*>("vector<DRW_Coord>");
-  register_vector<DRW_Entity*>("vector<DRW_Entity>");
-  register_vector<DRW_HatchLoop*>("vector<DRW_HatchLoop>");
+  register_vector<DRW_Vertex*>("DRW_VertexList");
+  register_vector<DRW_Vertex2D*>("DRW_Vertex2DList");
+  register_vector<DRW_Coord*>("DRW_CoordList");
+  register_vector<DRW_Entity*>("DRW_EntityList");
+  register_vector<DRW_HatchLoop*>("DRW_HatchLoopList");
 
   enum_<DRW::ETYPE>("DRW_ETYPE")
     .value("E3DFACE", DRW::E3DFACE)
@@ -881,7 +882,7 @@ EMSCRIPTEN_BINDINGS(DRW_Interface) {
 
 EMSCRIPTEN_BINDINGS(dxfRW) {
   class_<dxfRW>("dxfRW")
-    // .constructor<const char*>()
+    .constructor<const std::string&>()
     .function("setDebug", &dxfRW::setDebug)
     .function("read", &dxfRW::read, allow_raw_pointer<DRW_Interface*>())
     .function("setBinary", &dxfRW::setBinary)
@@ -920,11 +921,99 @@ EMSCRIPTEN_BINDINGS(dxfRW) {
 
 EMSCRIPTEN_BINDINGS(dwgR) {
   class_<dwgR>("dwgR")
-    // .constructor<const char*>()
+    .constructor<const std::string&>()
     .function("read", &dwgR::read, allow_raw_pointer<DRW_Interface*>())
     .function("getPreview", &dwgR::getPreview)
     .function("getVersion", &dwgR::getVersion)
     .function("getError", &dwgR::getError)
     .function("testReader", &dwgR::testReader)
     .function("setDebug", &dwgR::setDebug);
+}
+
+EMSCRIPTEN_BINDINGS(DRW_reader) {
+  register_vector<DRW_LType>("DRW_LTypeList");
+  register_vector<DRW_Layer>("DRW_LayerList");
+  register_vector<DRW_Dimstyle>("DRW_DimstyleList");
+  register_vector<DRW_Vport>("DRW_VportList");
+  register_vector<DRW_Textstyle>("DRW_TextstyleList");
+  register_vector<DRW_AppId>("DRW_AppIdList");
+  register_vector<dx_ifaceBlock*>("DRW_ifaceBlockList");
+  register_vector<dx_ifaceImg*>("DRW_ifaceImgList");
+
+  class_<dx_ifaceImg>("dx_ifaceImg")
+    .constructor<>()
+    .constructor<const DRW_Image&>()
+    .property("path", &dx_ifaceImg::path);
+
+  class_<dx_ifaceBlock>("dx_ifaceBlock")
+    .constructor<>()
+    .constructor<const DRW_Block&>()
+    .property("ent", &dx_ifaceBlock::ent);
+
+  class_<dx_data>("dx_data")
+    .constructor<>()
+    .property("headerC", &dx_data::headerC)
+    .property("lineTypes", &dx_data::lineTypes)
+    .property("layers", &dx_data::layers)
+    .property("dimStyles", &dx_data::dimStyles)
+    .property("VPorts", &dx_data::VPorts)
+    .property("textStyles", &dx_data::textStyles)
+    .property("appIds", &dx_data::appIds)
+    .property("blocks", &dx_data::blocks)
+    .property("images", &dx_data::images)
+    .property("mBlock", &dx_data::mBlock, allow_raw_pointer<dx_ifaceBlock*>());
+
+  class_<dx_iface, base<DRW_Interface>>("dx_iface")
+    .constructor<>()
+    .function("writeEntity", &dx_iface::writeEntity, allow_raw_pointer<DRW_Entity*>())
+    .function("addHeader", &DRW_Interface::addHeader, allow_raw_pointer<DRW_Header*>())
+    .function("addLType", &DRW_Interface::addLType)
+    .function("addLayer", &DRW_Interface::addLayer)
+    .function("addDimStyle", &DRW_Interface::addDimStyle)
+    .function("addVport", &DRW_Interface::addVport)
+    .function("addTextStyle", &DRW_Interface::addTextStyle)
+    .function("addAppId", &DRW_Interface::addAppId)
+    .function("addBlock", &DRW_Interface::addBlock)
+    .function("setBlock", &DRW_Interface::setBlock)
+    .function("endBlock", &DRW_Interface::endBlock)
+    .function("addPoint", &DRW_Interface::addPoint)
+    .function("addLine", &DRW_Interface::addLine)
+    .function("addRay", &DRW_Interface::addRay)
+    .function("addXline", &DRW_Interface::addXline)
+    .function("addArc", &DRW_Interface::addArc)
+    .function("addCircle", &DRW_Interface::addCircle)
+    .function("addEllipse", &DRW_Interface::addEllipse)
+    .function("addLWPolyline", &DRW_Interface::addLWPolyline)
+    .function("addPolyline", &DRW_Interface::addPolyline)
+    .function("addSpline", &DRW_Interface::addSpline, allow_raw_pointer<DRW_Spline*>())
+    .function("addKnot", &DRW_Interface::addKnot)
+    .function("addInsert", &DRW_Interface::addInsert)
+    .function("addTrace", &DRW_Interface::addTrace)
+    .function("add3dFace", &DRW_Interface::add3dFace)
+    .function("addSolid", &DRW_Interface::addSolid)
+    .function("addMText", &DRW_Interface::addMText)
+    .function("addText", &DRW_Interface::addText)
+    .function("addDimAlign", &DRW_Interface::addDimAlign, allow_raw_pointer<DRW_DimAligned*>())
+    .function("addDimLinear", &DRW_Interface::addDimLinear, allow_raw_pointer<DRW_DimLinear*>())
+    .function("addDimRadial", &DRW_Interface::addDimRadial, allow_raw_pointer<DRW_DimRadial*>())
+    .function("addDimDiametric", &DRW_Interface::addDimDiametric, allow_raw_pointer<DRW_DimDiametric*>())
+    .function("addDimAngular", &DRW_Interface::addDimAngular, allow_raw_pointer<DRW_DimAngular*>())
+    .function("addDimAngular3P", &DRW_Interface::addDimAngular3P, allow_raw_pointer<DRW_DimAngular3p*>())
+    .function("addDimOrdinate", &DRW_Interface::addDimOrdinate, allow_raw_pointer<DRW_DimOrdinate*>())
+    .function("addLeader", &DRW_Interface::addLeader, allow_raw_pointer<DRW_Leader*>())
+    .function("addHatch", &DRW_Interface::addHatch, allow_raw_pointer<DRW_Hatch*>())
+    .function("addViewport", &DRW_Interface::addViewport)
+    .function("addImage", &DRW_Interface::addImage, allow_raw_pointer<DRW_Image*>())
+    .function("linkImage", &DRW_Interface::linkImage, allow_raw_pointer<DRW_ImageDef*>())
+    // .function("addComment", &DRW_Interface::addComment, allow_raw_pointer<const char*>())
+    .function("writeHeader", &DRW_Interface::writeHeader)
+    .function("writeBlocks", &DRW_Interface::writeBlocks)
+    .function("writeBlockRecords", &DRW_Interface::writeBlockRecords)
+    .function("writeEntities", &DRW_Interface::writeEntities)
+    .function("writeLTypes", &DRW_Interface::writeLTypes)
+    .function("writeLayers", &DRW_Interface::writeLayers)
+    .function("writeTextstyles", &DRW_Interface::writeTextstyles)
+    .function("writeVports", &DRW_Interface::writeVports)
+    .function("writeDimstyles", &DRW_Interface::writeDimstyles)
+    .function("writeAppId", &DRW_Interface::writeAppId);
 }

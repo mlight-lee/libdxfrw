@@ -24,7 +24,7 @@ class dwgReader;
 
 class dwgR {
 public:
-    dwgR(const char* name);
+    dwgR(const std::string& data);
     ~dwgR();
     //read: return true if all ok
     bool read(DRW_Interface *interface_, bool ext);
@@ -35,12 +35,12 @@ bool testReader();
     void setDebug(DRW::DBG_LEVEL lvl);
 
 private:
-    bool openFile(std::ifstream *filestr);
+    bool openFile();
     bool processDwg();
 private:
     DRW::Version version;
     DRW::error error;
-    std::string fileName;
+    std::string buffer;
     bool applyExt; /*apply extrusion in entities to conv in 2D?*/
     std::string codePage;
     DRW_Interface *iface;

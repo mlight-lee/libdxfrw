@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read File Content</title>
+</head>
+<body>
+    <h1>Select a DXF/DWG file</h1>
+    <input type="file" id="fileInput" accept=".dxf" />
+    <script>
+        // Create a flag to check if the module is initialized
+        let isModuleInitialized = false;
+
+        // Define the Module object
+        var Module = {
+            onRuntimeInitialized: function() {
+                isModuleInitialized = true;
+                console.log('WebAssembly module initialized');
+            }
+        };
+
+        // Function to handle file input change event
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            
+            if (file) {
+                // Create a FileReader to read the file
+                const reader = new FileReader();
+
+                // Define the callback function for when the file is read
+                reader.onload = function(e) {
+                    const fileContent = e.target.result;
+
+                    // Wait for the WebAssembly module to be initialized
+                    if (isModuleInitialized) {
+                        try {
+                            // Create an instance of Module.dxfRW with the file content
+                            const input = new Module.dx_iface();
+                            const dxf = new Module.dxfRW(fileContent);
+                            dxf.read(input, false);
+                            console.log('DXF: ', dxf);
+                        } catch (error) {
+                            console.error('Error processing DXF:', error);
+                        }
+                    } else {
+                        console.log('WebAssembly module not yet initialized');
+                    }
+                };
+
+                // Read the file as text
+                reader.readAsText(file);
+            } else {
+                console.log('No file selected');
+            }
+        });
+
+
+    </script>
+    <script src="libdxfrw.js"></script>
+</body>
+</html>
