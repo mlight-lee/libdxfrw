@@ -37,7 +37,7 @@ bool testReader();
     void setDebug(DRW::DebugLevel lvl);
 
 private:
-    bool openFile();
+    bool openFile(std::istringstream *filestr);
     bool processDwg();
     static std::unique_ptr< dwgReader > createReaderForVersion(DRW::Version version, std::istringstream *stream, dwgR *p);
 

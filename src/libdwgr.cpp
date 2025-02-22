@@ -58,7 +58,8 @@ void dwgR::setDebug(DRW::DebugLevel lvl){
 bool dwgR::getPreview(){
     bool isOk = false;
 
-    isOk = openFile();
+    std::istringstream filestr(buffer, std::ios::binary);
+    isOk = openFile(&filestr);
     if (!isOk)
         return false;
 
@@ -131,15 +132,19 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
 
 //testReader();return false;
 
-    isOk = openFile();
+    std::istringstream filestr(buffer, std::ios::binary);
+    isOk = openFile(&filestr);
     if (!isOk)
         return false;
 
     isOk = reader->readMetaData();
     if (isOk) {
         isOk = reader->readFileHeader();
+        DRW_DBG("\n before process dwg: ");
         if (isOk) {
+            DRW_DBG("\n Start process dwg: ");
             isOk = processDwg();
+            DRW_DBG("\n finish process dwg: ");
         }
         else {
             error = DRW::BAD_READ_FILE_HEADER;
@@ -209,13 +214,12 @@ std::unique_ptr<dwgReader> dwgR::createReaderForVersion(DRW::Version version, st
  * and closes filestr.
  * Return true on succeed or false on fail
 */
-bool dwgR::openFile(){
+bool dwgR::openFile(std::istringstream *filestr){
     bool isOk = false;
     DRW_DBG("dwgR::read 1\n");
-    std::istringstream filestr(buffer, std::ios::binary);
 
     char line[7];
-    filestr.read (line, 6);
+    filestr->read (line, 6);
     line[6]='\0';
     DRW_DBG("dwgR::read 2\n");
     DRW_DBG("dwgR::read line version: ");
@@ -232,7 +236,7 @@ bool dwgR::openFile(){
         }
     }
 
-    reader = createReaderForVersion( version, &filestr, this );
+    reader = createReaderForVersion( version, filestr, this );
 
     if (!reader) {
         error = DRW::BAD_VERSION;

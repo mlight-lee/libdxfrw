@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>Select a DXF/DWG file</h1>
-    <input type="file" id="fileInput" accept=".dxf" />
+    <input type="file" id="fileInput" accept=".dxf, .dwg;" />
 
     <!-- Element to display Layer Names -->
     <h2>Layer Names:</h2>
@@ -72,6 +72,9 @@
             const file = event.target.files[0];
             
             if (file) {
+                // Get file extension
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+
                 // Create a FileReader to read the file
                 const reader = new FileReader();
 
@@ -84,12 +87,22 @@
                         try {
                             // Create an instance of Module.dxfRW with the file content
                             const input = new Module.dx_iface();
-                            const dxf = new Module.dxfRW(fileContent);
+                            if (fileExtension == 'dxf') {
+                                const dxf = new Module.dxfRW(fileContent);
 
-                            // Uncomment out the following line if you want to show debug info
-                            // dxf.setDebug(Module.DRW_DBG_LEVEL.DEBUG);
+                                // Uncomment out the following line if you want to show debug info
+                                // dxf.setDebug(Module.DRW_dbg_Level.Debug);
 
-                            const result = dxf.read(input, false);
+                                const result = dxf.read(input, false);
+                            } else if (fileExtension == 'dwg') {
+                                const dwg = new Module.dwgR(fileContent);
+
+                                // Uncomment out the following line if you want to show debug info
+                                // dwg.setDebug(Module.DRW_dbg_Level.Debug);
+
+                                const result = dwg.read(input, false);
+                            }
+
                             printItems('layerNamesList', input.cData.layers);
                             printItems('lineTypesList', input.cData.lineTypes);
                             printItems('textStylesList', input.cData.textStyles);
@@ -98,15 +111,19 @@
                             printItems('blocksList', input.cData.blocks, 'name', 'ent');
                             printItems('imagesList', input.cData.images, 'path');
                         } catch (error) {
-                            console.error('Error processing DXF:', error);
+                            console.error('Error processing DXF/DWG file: ', error);
                         }
                     } else {
                         console.log('WebAssembly module not yet initialized');
                     }
                 };
 
-                // Read the file as text
-                reader.readAsText(file);
+                // Read the file
+                if (fileExtension == 'dxf') {
+                    reader.readAsText(file);
+                } else if (fileExtension == 'dwg') {
+                    reader.readAsArrayBuffer(file);
+                }
             } else {
                 console.log('No file selected');
             }
