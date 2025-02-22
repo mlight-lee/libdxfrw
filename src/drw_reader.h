@@ -21,7 +21,7 @@ public:
         for (std::vector<DRW_Entity*>::const_iterator it=ent.begin(); it!=ent.end(); ++it)
             delete *it;
     }
-    std::vector<DRW_Entity*>ent; //stores the entities list
+    std::vector<DRW_Entity*> ent; //stores the entities list
 };
 
 
@@ -39,22 +39,27 @@ public:
     }
 
     DRW_Header headerC;                 //stores a copy of the header vars
-    std::vector<DRW_LType>lineTypes;      //stores a copy of all line types
-    std::vector<DRW_Layer>layers;         //stores a copy of all layers
-    std::vector<DRW_Dimstyle>dimStyles;   //stores a copy of all dimension styles
-    std::vector<DRW_Vport>VPorts;         //stores a copy of all vports
-    std::vector<DRW_Textstyle>textStyles; //stores a copy of all text styles
-    std::vector<DRW_AppId>appIds;         //stores a copy of all line types
-    std::vector<dx_ifaceBlock*>blocks;    //stores a copy of all blocks and the entities in it
-    std::vector<dx_ifaceImg*>images;      //temporary list to find images for link with DRW_ImageDef. Do not delete it!!
+    std::vector<DRW_LType> lineTypes;      //stores a copy of all line types
+    std::vector<DRW_Layer> layers;         //stores a copy of all layers
+    std::vector<DRW_Dimstyle> dimStyles;   //stores a copy of all dimension styles
+    std::vector<DRW_Vport> viewports;         //stores a copy of all vports
+    std::vector<DRW_Textstyle> textStyles; //stores a copy of all text styles
+    std::vector<DRW_AppId> appIds;         //stores a copy of all line types
+    std::vector<dx_ifaceBlock*> blocks;    //stores a copy of all blocks and the entities in it
+    std::vector<dx_ifaceImg*> images;      //temporary list to find images for link with DRW_ImageDef. Do not delete it!!
 
     dx_ifaceBlock* mBlock;              //container to store model entities
 };
 
 class dx_iface : public DRW_Interface {
 public:
-    dx_iface(){dxfW = NULL;}
-    ~dx_iface(){}
+    dx_iface() {
+        dxfW = NULL;
+        cData = new dx_data();
+    }
+    ~dx_iface() {
+        delete cData;
+    }
 
     void writeEntity(DRW_Entity* e) {
         switch (e->eType) {
@@ -141,7 +146,7 @@ public:
         cData->dimStyles.push_back(data);
     }
     virtual void addVport(const DRW_Vport& data){
-        cData->VPorts.push_back(data);
+        cData->viewports.push_back(data);
     }
     virtual void addTextStyle(const DRW_Textstyle& data){
         cData->textStyles.push_back(data);
@@ -305,7 +310,7 @@ public:
             dxfW->writeTextstyle(&(*it));
     }
     virtual void writeVports(){
-        for (std::vector<DRW_Vport>::iterator it=cData->VPorts.begin(); it != cData->VPorts.end(); ++it)
+        for (std::vector<DRW_Vport>::iterator it=cData->viewports.begin(); it != cData->viewports.end(); ++it)
             dxfW->writeVport(&(*it));
     }
     virtual void writeDimstyles(){

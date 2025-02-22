@@ -140,6 +140,7 @@ export type LEVEL = LEVELValue<0>|LEVELValue<1>;
 export interface DRW_dbg extends ClassHandle {
   setLevel(_0: LEVEL): void;
   getLevel(): LEVEL;
+  printString(_0: EmbindString): void;
   printInt(_0: number): void;
   printUnsignedInt(_0: number): void;
   printLongLongInt(_0: bigint): void;
@@ -847,55 +848,6 @@ export interface DRW_Interface extends ClassHandle {
   writeVports(): void;
   writeDimstyles(): void;
   writeAppId(): void;
-  addHeader(_0: DRW_Header | null): void;
-  addLType(_0: DRW_LType): void;
-  addLayer(_0: DRW_Layer): void;
-  addDimStyle(_0: DRW_Dimstyle): void;
-  addVport(_0: DRW_Vport): void;
-  addTextStyle(_0: DRW_Textstyle): void;
-  addAppId(_0: DRW_AppId): void;
-  addBlock(_0: DRW_Block): void;
-  setBlock(_0: number): void;
-  endBlock(): void;
-  addPoint(_0: DRW_Point): void;
-  addLine(_0: DRW_Line): void;
-  addRay(_0: DRW_Ray): void;
-  addXline(_0: DRW_Xline): void;
-  addArc(_0: DRW_Arc): void;
-  addCircle(_0: DRW_Circle): void;
-  addEllipse(_0: DRW_Ellipse): void;
-  addLWPolyline(_0: DRW_LWPolyline): void;
-  addPolyline(_0: DRW_Polyline): void;
-  addSpline(_0: DRW_Spline | null): void;
-  addKnot(_0: DRW_Entity): void;
-  addInsert(_0: DRW_Insert): void;
-  addTrace(_0: DRW_Trace): void;
-  add3dFace(_0: DRW_3Dface): void;
-  addSolid(_0: DRW_Solid): void;
-  addMText(_0: DRW_MText): void;
-  addText(_0: DRW_Text): void;
-  addDimAlign(_0: DRW_DimAligned | null): void;
-  addDimLinear(_0: DRW_DimLinear | null): void;
-  addDimRadial(_0: DRW_DimRadial | null): void;
-  addDimDiametric(_0: DRW_DimDiametric | null): void;
-  addDimAngular(_0: DRW_DimAngular | null): void;
-  addDimAngular3P(_0: DRW_DimAngular3p | null): void;
-  addDimOrdinate(_0: DRW_DimOrdinate | null): void;
-  addLeader(_0: DRW_Leader | null): void;
-  addHatch(_0: DRW_Hatch | null): void;
-  addViewport(_0: DRW_Viewport): void;
-  addImage(_0: DRW_Image | null): void;
-  linkImage(_0: DRW_ImageDef | null): void;
-  writeHeader(_0: DRW_Header): void;
-  writeBlocks(): void;
-  writeBlockRecords(): void;
-  writeEntities(): void;
-  writeLTypes(): void;
-  writeLayers(): void;
-  writeTextstyles(): void;
-  writeVports(): void;
-  writeDimstyles(): void;
-  writeAppId(): void;
 }
 
 export interface dxfRW extends ClassHandle {
@@ -1013,7 +965,7 @@ export interface dx_ifaceImg extends ClassHandle {
   set path(value: EmbindString);
 }
 
-export interface dx_ifaceBlock extends ClassHandle {
+export interface dx_ifaceBlock extends DRW_Block {
   ent: DRW_EntityList;
 }
 
@@ -1022,7 +974,7 @@ export interface dx_data extends ClassHandle {
   lineTypes: DRW_LTypeList;
   layers: DRW_LayerList;
   dimStyles: DRW_DimstyleList;
-  VPorts: DRW_VportList;
+  viewports: DRW_VportList;
   textStyles: DRW_TextstyleList;
   appIds: DRW_AppIdList;
   blocks: DRW_ifaceBlockList;
@@ -1031,7 +983,59 @@ export interface dx_data extends ClassHandle {
 }
 
 export interface dx_iface extends DRW_Interface {
+  dxfW: dxfRW | null;
+  cData: dx_data | null;
+  currentBlock: dx_ifaceBlock | null;
   writeEntity(_0: DRW_Entity | null): void;
+  addHeader(_0: DRW_Header | null): void;
+  addLType(_0: DRW_LType): void;
+  addLayer(_0: DRW_Layer): void;
+  addDimStyle(_0: DRW_Dimstyle): void;
+  addVport(_0: DRW_Vport): void;
+  addTextStyle(_0: DRW_Textstyle): void;
+  addAppId(_0: DRW_AppId): void;
+  addBlock(_0: DRW_Block): void;
+  setBlock(_0: number): void;
+  endBlock(): void;
+  addPoint(_0: DRW_Point): void;
+  addLine(_0: DRW_Line): void;
+  addRay(_0: DRW_Ray): void;
+  addXline(_0: DRW_Xline): void;
+  addArc(_0: DRW_Arc): void;
+  addCircle(_0: DRW_Circle): void;
+  addEllipse(_0: DRW_Ellipse): void;
+  addLWPolyline(_0: DRW_LWPolyline): void;
+  addPolyline(_0: DRW_Polyline): void;
+  addSpline(_0: DRW_Spline | null): void;
+  addKnot(_0: DRW_Entity): void;
+  addInsert(_0: DRW_Insert): void;
+  addTrace(_0: DRW_Trace): void;
+  add3dFace(_0: DRW_3Dface): void;
+  addSolid(_0: DRW_Solid): void;
+  addMText(_0: DRW_MText): void;
+  addText(_0: DRW_Text): void;
+  addDimAlign(_0: DRW_DimAligned | null): void;
+  addDimLinear(_0: DRW_DimLinear | null): void;
+  addDimRadial(_0: DRW_DimRadial | null): void;
+  addDimDiametric(_0: DRW_DimDiametric | null): void;
+  addDimAngular(_0: DRW_DimAngular | null): void;
+  addDimAngular3P(_0: DRW_DimAngular3p | null): void;
+  addDimOrdinate(_0: DRW_DimOrdinate | null): void;
+  addLeader(_0: DRW_Leader | null): void;
+  addHatch(_0: DRW_Hatch | null): void;
+  addViewport(_0: DRW_Viewport): void;
+  addImage(_0: DRW_Image | null): void;
+  linkImage(_0: DRW_ImageDef | null): void;
+  writeHeader(_0: DRW_Header): void;
+  writeBlocks(): void;
+  writeBlockRecords(): void;
+  writeEntities(): void;
+  writeLTypes(): void;
+  writeLayers(): void;
+  writeTextstyles(): void;
+  writeVports(): void;
+  writeDimstyles(): void;
+  writeAppId(): void;
 }
 
 interface EmbindModule {

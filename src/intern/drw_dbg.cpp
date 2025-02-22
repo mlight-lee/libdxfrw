@@ -19,7 +19,7 @@ DRW_dbg *DRW_dbg::instance= NULL;
 /*********private clases*************/
 class print_none {
 public:
-    virtual void printS(std::string s){(void)s;}
+    virtual void printS(const std::string& s){(void)s;}
     virtual void printI(long long int i){(void)i;}
     virtual void printUI(long long unsigned int i){(void)i;}
     virtual void printD(double d){(void)d;}
@@ -33,7 +33,7 @@ public:
 
 class print_debug : public print_none {
 public:
-    virtual void printS(std::string s);
+    virtual void printS(const std::string& s);
     virtual void printI(long long int i);
     virtual void printUI(long long unsigned int i);
     virtual void printD(double d);
@@ -77,7 +77,7 @@ DRW_dbg::LEVEL DRW_dbg::getLevel(){
     return level;
 }
 
-void DRW_dbg::print(std::string s){
+void DRW_dbg::print(const std::string& s){
     prClass->printS(s);
 }
 
@@ -124,7 +124,7 @@ print_debug::print_debug(){
     flags = std::cerr.flags();
 }
 
-void print_debug::printS(std::string s){
+void print_debug::printS(const std::string& s){
     std::cerr << s;
 }
 

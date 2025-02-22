@@ -83,12 +83,13 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         filestr.seekg (22, std::ios::beg);
         reader = new dxfReaderBinary(&filestr);
         DRW_DBG("dxfRW::read binary file\n");
+        isOk = processDxf();
     } else {
         binFile = false;
-        reader = new dxfReaderAscii(&filestr);
+        std::istringstream temp(buffer);
+        reader = new dxfReaderAscii(&temp);
+        isOk = processDxf();
     }
-
-    isOk = processDxf();
 
     delete reader;
     reader = NULL;
