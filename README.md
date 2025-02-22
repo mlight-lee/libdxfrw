@@ -1,61 +1,25 @@
-libdxfrw ![Build status](https://api.travis-ci.org/LibreCAD/libdxfrw.svg?branch=master)
-==========
+# libdxfrw
 
 libdxfrw is a free C++ library to read and write DXF files in both formats, ascii and binary form.
-It also has rudimentary capabilities to read DWG files.
-It is licensed under the terms of the GNU General Public License version 2 (or at you option
-any later version).
+Also can read DWG files from R14 to the last V2015.
 
+This is a forked version of libdxfrw by adding supports to build it as WebAssembly using Emscripten embind.
 
-libdxfrw was created by [LibreCAD](https://github.com/LibreCAD/LibreCAD) contributors in the process of making LibreCAD.
-As the original code at [SourceForge](https://sourceforge.net/projects/libdxfrw) was no longer supported by the orignal authors, this repo has become its successor.
-
-If you are looking for historical information about the project, it's still there:
-http://sourceforge.net/projects/libdxfrw
-
-
-Please note:
-----------
-When you clone or download this project to build [LibreCAD_3](https://github.com/LibreCAD/LibreCAD_3) use the branch **LibreCAD_3**. The master or other branches may have incompatible interface definitions which are not yet implemented in LibreCAD_3!
-
-Building and installing the library
-==========
-
-Debug version
-----------
+## Build WebAssembly
 
 ```
+autoconf
+automake --add-missing --force-missing
 mkdir build
 cd build
-cmake ..
-make 
-sudo make install
+emconfigure ../configure
+cd src
+emmake make
+emcc -O2 -lembind *.o intern/*.o -o libdxfrw.js -s MODULARIZE=1 -s EXPORT_NAME="createModule" --emit-tsd libdxfrw.d.ts
 ```
 
-Non-debug version
-----------
+If you want to debug WebAssembly in Chrome DevTools. Please compile your application with DWARF debug information included. Run the latest Emscripten compiler and pass it the -gsource-map flag. For example:
 
 ```
-mkdir release
-cd release
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make 
-sudo make install
+emcc -gsource-map -lembind *.o intern/*.o -o libdxfrw.js -s MODULARIZE=1 -s EXPORT_NAME="createModule" --emit-tsd libdxfrw.d.ts
 ```
-
-Ubuntu/Mint Folks
-----------
-
-```
-mkdir release
-cd release
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr .. && make all
-make 
-sudo make install
-```
-
-
-Example usage of the library
-==========
-
-See how we use it in LibreCAD V3 : https://github.com/LibreCAD/LibreCAD_3/tree/master/persistence/libdxfrw

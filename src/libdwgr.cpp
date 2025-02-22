@@ -36,8 +36,8 @@
     secObjects
 };*/
 
-dwgR::dwgR(const char* name)
-    : fileName{ name }
+dwgR::dwgR(const std::string& data)
+    : buffer(data)
 {
     DRW_DBGSL(DRW_dbg::Level::None);
 }
@@ -58,8 +58,7 @@ void dwgR::setDebug(DRW::DebugLevel lvl){
 bool dwgR::getPreview(){
     bool isOk = false;
 
-    std::ifstream filestr;
-    isOk = openFile(&filestr);
+    isOk = openFile();
     if (!isOk)
         return false;
 
@@ -69,7 +68,7 @@ bool dwgR::getPreview(){
     } else
         error = DRW::BAD_READ_METADATA;
 
-    filestr.close();
+    // filestr.close();
     if (reader) {
         reader.reset();
     }
@@ -79,13 +78,7 @@ bool dwgR::getPreview(){
 bool dwgR::testReader(){
     bool isOk = false;
 
-    std::ifstream filestr;
-    filestr.open (fileName.c_str(), std::ios_base::in | std::ios::binary);
-    if (!filestr.is_open() || !filestr.good() ){
-        error = DRW::BAD_OPEN;
-        return isOk;
-    }
-
+    std::istringstream filestr(buffer, std::ios::binary);
     dwgBuffer fileBuf(&filestr);
     duint8 *tmpStrData = new duint8[fileBuf.size()];
     fileBuf.getBytes(tmpStrData, fileBuf.size());
@@ -125,7 +118,7 @@ bool dwgR::testReader(){
     DRW_DBG("\n dataBuf bitpos: ");DRW_DBG(dataBuf.getBitPos());
 
     delete[]tmpStrData;
-    filestr.close();
+    // filestr.close();
     DRW_DBG("\n\n");
     return isOk;
 }
@@ -138,8 +131,7 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
 
 //testReader();return false;
 
-    std::ifstream filestr;
-    isOk = openFile(&filestr);
+    isOk = openFile();
     if (!isOk)
         return false;
 
@@ -157,7 +149,7 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
         error = DRW::BAD_READ_METADATA;
     }
 
-    filestr.close();
+    // filestr.close();
     if (reader) {
         reader.reset();
     }
@@ -170,7 +162,7 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
  *
  * \returns nullptr if version is not supported.
 */
-std::unique_ptr<dwgReader> dwgR::createReaderForVersion(DRW::Version version, std::ifstream *stream, dwgR *p )
+std::unique_ptr<dwgReader> dwgR::createReaderForVersion(DRW::Version version, std::istringstream *stream, dwgR *p )
 {
     switch ( version ) {
        // unsupported
@@ -217,17 +209,13 @@ std::unique_ptr<dwgReader> dwgR::createReaderForVersion(DRW::Version version, st
  * and closes filestr.
  * Return true on succeed or false on fail
 */
-bool dwgR::openFile(std::ifstream *filestr){
+bool dwgR::openFile(){
     bool isOk = false;
     DRW_DBG("dwgR::read 1\n");
-    filestr->open (fileName.c_str(), std::ios_base::in | std::ios::binary);
-    if (!filestr->is_open() || !filestr->good() ){
-        error = DRW::BAD_OPEN;
-        return isOk;
-    }
+    std::istringstream filestr(buffer, std::ios::binary);
 
     char line[7];
-    filestr->read (line, 6);
+    filestr.read (line, 6);
     line[6]='\0';
     DRW_DBG("dwgR::read 2\n");
     DRW_DBG("dwgR::read line version: ");
@@ -244,11 +232,11 @@ bool dwgR::openFile(std::ifstream *filestr){
         }
     }
 
-    reader = createReaderForVersion( version, filestr, this );
+    reader = createReaderForVersion( version, &filestr, this );
 
     if (!reader) {
         error = DRW::BAD_VERSION;
-        filestr->close();
+        // filestr->close();
     } else
         isOk = true;
 
