@@ -19,6 +19,16 @@
     "mlight",
     "mlightcad"
   ],
+  "scripts": {
+    "build": "cd build/src && mkdir -p build && cd build && emmake make && emcc -O2 -lembind *.o intern/*.o -o libdxfrw.js -s ALLOW_MEMORY_GROWTH=1 -s EXPORT_ES6=1 -s MODULARIZE=1 -s EXPORT_NAME=\"createModule\" --emit-tsd libdxfrw.d.ts",
+    "build:cmake": "cd build && emmake make && emcc -O2 -lembind CMakeFiles/dxfrw.dir/src/*.o CMakeFiles/dxfrw.dir/src/intern/*.o -o libdxfrw.js -s ALLOW_MEMORY_GROWTH=1 -s EXPORT_ES6=1 -s MODULARIZE=1 -s EXPORT_NAME=\"createModule\" --emit-tsd libdxfrw.d.ts",
+    "clean": "rm -rf build",
+    "copy": "cp -f build/libdxfrw.d.ts build/libdxfrw.js build/libdxfrw.wasm  dist/",
+    "install:emsdk": "cd $EMSDK && ./emsdk install latest && ./emsdk activate latest",
+    "prepare": "mkdir -p build && cd build && emconfigure ../configure && cd src",
+    "prepare:cmake": "mkdir -p build && cd build && emcmake cmake .. -DCMAKE_BUILD_TYPE=Release",
+    "publish": "pnpm publish --access public --no-git-checks"
+  },
   "files": [
     "dist",
     "README.md",
