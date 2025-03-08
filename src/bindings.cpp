@@ -421,6 +421,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   register_vector<DRW_Vertex2D*>("DRW_Vertex2DList");
   register_vector<DRW_Coord*>("DRW_CoordList");
   register_vector<DRW_HatchLoop*>("DRW_HatchLoopList");
+  register_vector<DRW_HatchPattenLine>("DRW_HatchPattenLineList");
 
   enum_<DRW::ETYPE>("DRW_ETYPE")
     .value("E3DFACE", DRW::E3DFACE)
@@ -518,9 +519,9 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .function("toPolyline", &DRW_Ellipse::toPolyline, allow_raw_pointer<DRW_Polyline*>())
     .function("applyExtrusion", &DRW_Ellipse::applyExtrusion)
     .property("ratio", &DRW_Ellipse::ratio)
-    .property("staparam", &DRW_Ellipse::staparam)
-    .property("endparam", &DRW_Ellipse::endparam)
-    .property("isccw", &DRW_Ellipse::isccw);
+    .property("startAngle", &DRW_Ellipse::staparam)
+    .property("endAngle", &DRW_Ellipse::endparam)
+    .property("isCounterClockwise", &DRW_Ellipse::isccw);
 
   class_<DRW_Trace, base<DRW_Line>>("DRW_Trace")
     .constructor<>()
@@ -566,14 +567,14 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .constructor<>()
     .function("applyExtrusion", &DRW_Insert::applyExtrusion)
     .property("name", &DRW_Insert::name)
-    .property("xscale", &DRW_Insert::xscale)
-    .property("yscale", &DRW_Insert::yscale)
-    .property("zscale", &DRW_Insert::zscale)
+    .property("xScale", &DRW_Insert::xscale)
+    .property("yScale", &DRW_Insert::yscale)
+    .property("zScale", &DRW_Insert::zscale)
     .property("angle", &DRW_Insert::angle)
-    .property("colcount", &DRW_Insert::colcount)
-    .property("rowcount", &DRW_Insert::rowcount)
-    .property("colspace", &DRW_Insert::colspace)
-    .property("rowspace", &DRW_Insert::rowspace)
+    .property("colCount", &DRW_Insert::colcount)
+    .property("rowCount", &DRW_Insert::rowcount)
+    .property("colSpace", &DRW_Insert::colspace)
+    .property("rowSpace", &DRW_Insert::rowspace)
     .property("blockRecH", &DRW_Insert::blockRecH)
     .property("seqendH", &DRW_Insert::seqendH);
 
@@ -583,7 +584,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .function("addVertex", &DRW_LWPolyline::addVertex)
     .function("appendVertex", &DRW_LWPolyline::appendVertex)
     .function("getVertexList", &DRW_LWPolyline::getVertexList)
-    .property("vertexnum", &DRW_LWPolyline::vertexnum)
+    .property("vertexNum", &DRW_LWPolyline::vertexnum)
     .property("flags", &DRW_LWPolyline::flags)
     .property("width", &DRW_LWPolyline::width)
     .property("elevation", &DRW_LWPolyline::elevation)
@@ -676,9 +677,9 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("tgEnd", &DRW_Spline::tgEnd, return_value_policy::reference())
     .property("flags", &DRW_Spline::flags)
     .property("degree", &DRW_Spline::degree)
-    .property("nKnots", &DRW_Spline::nknots)
-    .property("nControl", &DRW_Spline::ncontrol)
-    .property("nFit", &DRW_Spline::nfit)
+    .property("numberOfKnots", &DRW_Spline::nknots)
+    .property("numberOfControls", &DRW_Spline::ncontrol)
+    .property("numberOfFits", &DRW_Spline::nfit)
     .property("tolKnot", &DRW_Spline::tolknot)
     .property("tolControl", &DRW_Spline::tolcontrol)
     .property("tolFit", &DRW_Spline::tolfit)
@@ -692,8 +693,14 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .function("update", &DRW_HatchLoop::update)
     .function("getObjList", &DRW_HatchLoop::getObjList)
     .property("type", &DRW_HatchLoop::type)
-    .property("numedges", &DRW_HatchLoop::numedges);
+    .property("numberOfEdges", &DRW_HatchLoop::numedges);
     // .property("objlist", &DRW_HatchLoop::objlist);
+
+  value_object<DRW_HatchPattenLine>("DRW_HatchPattenLine")
+    .field("angle", &DRW_HatchPattenLine::angle)
+    .field("base", &DRW_HatchPattenLine::base)
+    .field("offset", &DRW_HatchPattenLine::offset)
+    .field("dashPattern", &DRW_HatchPattenLine::dashPattern);
 
   class_<DRW_Hatch, base<DRW_Point>>("DRW_Hatch")
     .constructor<>()
@@ -702,13 +709,14 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("name", &DRW_Hatch::name)
     .property("solid", &DRW_Hatch::solid)
     .property("associative", &DRW_Hatch::associative)
-    .property("hstyle", &DRW_Hatch::hstyle)
-    .property("hpattern", &DRW_Hatch::hpattern)
-    .property("doubleflag", &DRW_Hatch::doubleflag)
-    .property("loopsnum", &DRW_Hatch::loopsnum)
+    .property("hatchStyle", &DRW_Hatch::hstyle)
+    .property("patternType", &DRW_Hatch::hpattern)
+    .property("doubleFlag", &DRW_Hatch::doubleflag)
+    .property("numberOfLoops", &DRW_Hatch::loopsnum)
     .property("angle", &DRW_Hatch::angle)
     .property("scale", &DRW_Hatch::scale)
-    .property("deflines", &DRW_Hatch::deflines);
+    .property("numberOfDefinitionLines", &DRW_Hatch::deflines)
+    .property("definitionLines", &DRW_Hatch::deflinelist, return_value_policy::reference());
     // .property("looplist", &DRW_Hatch::looplist);
 
   class_<DRW_Image, base<DRW_Line>>("DRW_Image")
@@ -978,19 +986,19 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
   register_vector<DRW_Textstyle>("DRW_TextstyleList");
   register_vector<DRW_AppId>("DRW_AppIdList");
   register_vector<dx_ifaceBlock*>("DRW_BlockList");
-  register_vector<dx_ifaceImg*>("DRW_ImgList");
+  register_vector<dx_ifaceImg*>("DRW_ImageList");
 
-  class_<dx_ifaceImg, base<DRW_Image>>("dx_ifaceImg")
+  class_<dx_ifaceImg, base<DRW_Image>>("DRW_ImageEx")
     .constructor<>()
     .constructor<const DRW_Image&>()
     .property("path", &dx_ifaceImg::path, return_value_policy::reference());
 
-  class_<dx_ifaceBlock, base<DRW_Block>>("dx_ifaceBlock")
+  class_<dx_ifaceBlock, base<DRW_Block>>("DRW_BlockEx")
     .constructor<>()
     .constructor<const DRW_Block&>()
     .property("entities", &dx_ifaceBlock::ent, return_value_policy::reference());
 
-  class_<dx_data>("dx_data")
+  class_<dx_data>("DRW_Database")
     .constructor<>()
     .property("header", &dx_data::headerC, return_value_policy::reference())
     .property("lineTypes", &dx_data::lineTypes, return_value_policy::reference())
@@ -1003,7 +1011,7 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
     .property("images", &dx_data::images, return_value_policy::reference())
     .property("mBlock", &dx_data::mBlock, return_value_policy::reference(), allow_raw_pointer<dx_ifaceBlock*>());
 
-  class_<dx_iface, base<DRW_Interface>>("dx_iface")
+  class_<dx_iface, base<DRW_Interface>>("DRW_FileHandler")
     .constructor<>()
     .function("fileImport", &dx_iface::fileImport, allow_raw_pointer<dx_data*>())
     .function("fileExport", &dx_iface::fileExport, allow_raw_pointer<dx_data*>())
@@ -1059,6 +1067,6 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
     .function("writeDimstyles", &dx_iface::writeDimstyles)
     .function("writeAppId", &dx_iface::writeAppId)
     .property("dxfW", &dx_iface::dxfW, allow_raw_pointer<dxfRW*>())
-    .property("cData", &dx_iface::cData, allow_raw_pointer<dx_data*>())
+    .property("database", &dx_iface::cData, allow_raw_pointer<dx_data*>())
     .property("currentBlock", &dx_iface::currentBlock, allow_raw_pointer<dx_ifaceBlock*>());
 }
