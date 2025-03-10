@@ -38,15 +38,16 @@ public:
         delete mBlock;
     }
 
-    DRW_Header headerC;                 //stores a copy of the header vars
-    std::vector<DRW_LType> lineTypes;      //stores a copy of all line types
-    std::vector<DRW_Layer> layers;         //stores a copy of all layers
-    std::vector<DRW_Dimstyle> dimStyles;   //stores a copy of all dimension styles
-    std::vector<DRW_Vport> viewports;         //stores a copy of all vports
-    std::vector<DRW_Textstyle> textStyles; //stores a copy of all text styles
-    std::vector<DRW_AppId> appIds;         //stores a copy of all line types
-    std::vector<dx_ifaceBlock*> blocks;    //stores a copy of all blocks and the entities in it
-    std::vector<dx_ifaceImg*> images;      //temporary list to find images for link with DRW_ImageDef. Do not delete it!!
+    DRW_Header headerC;                     //stores a copy of the header vars
+    std::vector<DRW_LType> lineTypes;       //stores a copy of all line types
+    std::vector<DRW_Layer> layers;          //stores a copy of all layers
+    std::vector<DRW_Dimstyle> dimStyles;    //stores a copy of all dimension styles
+    std::vector<DRW_Vport> viewports;       //stores a copy of all vports
+    std::vector<DRW_Textstyle> textStyles;  //stores a copy of all text styles
+    std::vector<DRW_AppId> appIds;          //stores a copy of all line types
+    std::vector<dx_ifaceBlock*> blocks;     //stores a copy of all blocks and the entities in it
+    std::vector<dx_ifaceImg*> images;       //temporary list to find images for link with DRW_ImageDef. Do not delete it!!
+    std::vector<DRW_Layout> layouts;        //stores a copy of all layouts
 
     dx_ifaceBlock* mBlock;              //container to store model entities
 };
@@ -203,6 +204,9 @@ public:
     virtual void addPlotSettings(const DRW_PlotSettings *data) {
         (void)data;
         // default implementation for new DRW_Interface method
+    }
+    virtual void addLayout(const DRW_Layout& data) {
+        cData->layouts.push_back(const_cast<DRW_Layout&>(data));
     }
 
     virtual void writeHeader(DRW_Header& data){

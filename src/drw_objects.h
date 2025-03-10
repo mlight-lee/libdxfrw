@@ -38,12 +38,13 @@ namespace DRW {
          BLOCK_RECORD,
          APPID,
          IMAGEDEF,
-         PLOTSETTINGS
+         PLOTSETTINGS,
+         LAYOUT
      };
 
 //pending VIEW, UCS, APPID, VP_ENT_HDR, GROUP, MLINESTYLE, LONG_TRANSACTION, XRECORD,
 //ACDBPLACEHOLDER, VBA_PROJECT, ACAD_TABLE, CELLSTYLEMAP, DBCOLOR, DICTIONARYVAR,
-//DICTIONARYWDFLT, FIELD, IDBUFFER, IMAGEDEF, IMAGEDEFREACTOR, LAYER_INDEX, LAYOUT
+//DICTIONARYWDFLT, FIELD, IDBUFFER, IMAGEDEF, IMAGEDEFREACTOR, LAYER_INDEX,
 //MATERIAL, PLACEHOLDER, PLOTSETTINGS, RASTERVARIABLES, SCALE, SORTENTSTABLE,
 //SPATIAL_INDEX, SPATIAL_FILTER, TABLEGEOMETRY, TABLESTYLES,VISUALSTYLE,
 }
@@ -442,6 +443,65 @@ public:
     **/
 };
 
+class DRW_Layout : public DRW_TableEntry {//
+    SETOBJFRIENDS
+public:
+    DRW_Layout() {
+        reset();
+    }
+
+    void reset(){
+        tType = DRW::LAYOUT;
+        DRW_TableEntry::reset();
+    }
+
+protected:
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
+    bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
+
+public:
+    UTF8STRING pageSetupName;           /*!< plotsettings page setup name, code 1 */
+    UTF8STRING printerOrConfigFile;     /*!< plotsettings printer or configuration file, code 2 */
+    int plotLayoutFlags;                /*!< plotsettings plot layout flag, code 70 */
+    double leftMargin;                  /*!< plotsettings left margin in millimeters, code 40 */
+    double bottomMargin;                /*!< plotsettings bottom margin in millimeters, code 41 */
+    double rightMargin;                 /*!< plotsettings right margin in millimeters, code 42 */
+    double topMargin;                   /*!< plotsettings top margin in millimeters, code 43 */
+    double paperWidth;                  /*!< plotsettings paper width in millimeters, code 44 */
+    double paperHeight;                 /*!< plotsettings paper height in millimeters, code 45 */
+    UTF8STRING paperSize;               /*!< plotsettings paper size, code 4 */
+    DRW_Coord plotOrigin;               /*!< plotsettings origin offset in millimeters, code 46, 47 */
+    int plotPaperUnits;                 /*!< plotsettings plot paper units, code 72 */
+    int plotRotation;                   /*!< plotsettings plot rotation, code 73 */
+    int plotType;                       /*!< plotsettings plot type, code 74 */
+    DRW_Coord windowMin;                /*!< plotsettings plot window area lower left, code 48, 49 */
+    DRW_Coord windowMax;                /*!< plotsettings plot window area upper right, code 140, 141 */
+    UTF8STRING plotViewName;            /*!< plotsettings plot view name, code 6 */
+    double realWorldUnits;              /*!< plotsettings numerator of custom print scale, code 142 */
+    double drawingUnits;                /*!< plotsettings denominator of custom print scale, code 143 */
+    UTF8STRING currentStyleSheet;       /*!< plotsettings current style sheet, code 7 */
+    int scaleType;                      /*!< plotsettings standard scale type, code 75 */
+    double scaleFactor;                 /*!< plotsettings scale factor, code 147 */
+    DRW_Coord paperImageOrigin;         /*!< plotsettings paper image origin, code 148, 149 */
+    int shadePlotMode;                  /*!< Shade plot mode, code 76 */
+    int shadePlotResLevel;              /*!< Shade plot res. Level, code 77 */
+    int shadePlotCustomDpi;             /*!< Shade plot custom DPI, code 78 */
+
+    UTF8STRING layoutName;              /*!< layout name, code 1 */
+    dint32 tabOrder;                    /*!< layout tab order, code 71 */
+    DRW_Coord ucsOrigin;                /*!< layout ucs origin, code 13 */
+    DRW_Coord minLimits;                /*!< layout minimum limits, code 10 */
+    DRW_Coord maxLimits;                /*!< layout maximum limits, code 11 */
+    DRW_Coord insertBasePoint;          /*!< layout insertion base point, code 12, 22, 32 */
+    DRW_Coord ucsXAxis;                 /*!< layout ucs x axis direction, code 16 */
+    DRW_Coord ucsYAxis;                 /*!< layout ucs y axis direction, code 17 */
+    double elevation;                   /*!< layout elevation, code 146 */
+    int orthoviewType;                  /*!< layout orthographic view type of UCS, code 76 */
+    DRW_Coord extMin;                   /*!< layout extent min, code 14, 24, 34 */
+    DRW_Coord extMax;                   /*!< layout extent max, code 15, 25, 35 */
+
+    duint32 viewportCount;              /*!< of viewports in this layout */
+};
 
 //! Class to handle imagedef entries
 /*!

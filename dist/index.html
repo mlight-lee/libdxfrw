@@ -30,6 +30,10 @@
     <h2>Viewports:</h2>
     <ul id="viewportList"></ul>
 
+    <!-- Element to display Layouts -->
+    <h2>Layouts:</h2>
+    <ul id="layoutList"></ul>
+
     <!-- Element to display Blocks -->
     <h2>Blocks:</h2>
     <ul id="blockList"></ul>
@@ -225,6 +229,7 @@
                         printItems('textStyleList', fileHandler.database.textStyles);
                         printItems('dimStyleList', fileHandler.database.dimStyles);
                         printItems('viewportList', fileHandler.database.viewports);
+                        printItems('layoutList', fileHandler.database.layouts, 'layoutName');
                         printItems('blockList', fileHandler.database.blocks, 'name', 'entities');
                         printItems('imageList', fileHandler.database.images, 'path');
                         printEntityStats('entityList', fileHandler.database.mBlock.entities);

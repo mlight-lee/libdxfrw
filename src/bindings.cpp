@@ -394,6 +394,16 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
     .property("snapIsopair", &DRW_Vport::snapIsopair)
     .property("gridBehavior", &DRW_Vport::gridBehavior);
 
+  class_<DRW_Layout, base<DRW_TableEntry>>("DRW_Layout")
+    .constructor<>()
+    .function("reset", &DRW_Layout::reset)
+    .property("layoutName", &DRW_Layout::layoutName)
+    .property("tabOrder", &DRW_Layout::tabOrder)
+    .property("extentMin", &DRW_Layout::extMin)
+    .property("extentMax", &DRW_Layout::extMax)
+    .property("minLimits", &DRW_Layout::minLimits)
+    .property("maxLimits", &DRW_Layout::maxLimits);
+
   class_<DRW_ImageDef, base<DRW_TableEntry>>("DRW_ImageDef")
     .constructor<>()
     .function("reset", &DRW_ImageDef::reset)
@@ -985,6 +995,7 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
   register_vector<DRW_Vport>("DRW_VportList");
   register_vector<DRW_Textstyle>("DRW_TextstyleList");
   register_vector<DRW_AppId>("DRW_AppIdList");
+  register_vector<DRW_Layout>("DRW_LayoutList");
   register_vector<dx_ifaceBlock*>("DRW_BlockList");
   register_vector<dx_ifaceImg*>("DRW_ImageList");
 
@@ -1006,6 +1017,7 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
     .property("dimStyles", &dx_data::dimStyles, return_value_policy::reference())
     .property("viewports", &dx_data::viewports, return_value_policy::reference())
     .property("textStyles", &dx_data::textStyles, return_value_policy::reference())
+    .property("layouts", &dx_data::layouts, return_value_policy::reference())
     .property("appIds", &dx_data::appIds, return_value_policy::reference())
     .property("blocks", &dx_data::blocks, return_value_policy::reference())
     .property("images", &dx_data::images, return_value_policy::reference())

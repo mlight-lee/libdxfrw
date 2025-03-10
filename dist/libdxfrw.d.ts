@@ -372,6 +372,17 @@ export interface DRW_Vport extends DRW_TableEntry {
   reset(): void;
 }
 
+export interface DRW_Layout extends DRW_TableEntry {
+  get layoutName(): string;
+  set layoutName(value: EmbindString);
+  tabOrder: number;
+  extentMin: DRW_Coord;
+  extentMax: DRW_Coord;
+  minLimits: DRW_Coord;
+  maxLimits: DRW_Coord;
+  reset(): void;
+}
+
 export interface DRW_ImageDef extends DRW_TableEntry {
   get name(): string;
   set name(value: EmbindString);
@@ -1002,6 +1013,14 @@ export interface DRW_AppIdList extends ClassHandle {
   set(_0: number, _1: DRW_AppId): boolean;
 }
 
+export interface DRW_LayoutList extends ClassHandle {
+  push_back(_0: DRW_Layout): void;
+  resize(_0: number, _1: DRW_Layout): void;
+  size(): number;
+  get(_0: number): DRW_Layout | undefined;
+  set(_0: number, _1: DRW_Layout): boolean;
+}
+
 export interface DRW_BlockList extends ClassHandle {
   size(): number;
   get(_0: number): DRW_BlockEx | undefined;
@@ -1034,6 +1053,7 @@ export interface DRW_Database extends ClassHandle {
   dimStyles: DRW_DimstyleList;
   viewports: DRW_VportList;
   textStyles: DRW_TextstyleList;
+  layouts: DRW_LayoutList;
   appIds: DRW_AppIdList;
   blocks: DRW_BlockList;
   images: DRW_ImageList;
@@ -1170,6 +1190,9 @@ interface EmbindModule {
   };
   DRW_Vport: {
     new(): DRW_Vport;
+  };
+  DRW_Layout: {
+    new(): DRW_Layout;
   };
   DRW_ImageDef: {
     new(): DRW_ImageDef;
@@ -1326,6 +1349,9 @@ interface EmbindModule {
   };
   DRW_AppIdList: {
     new(): DRW_AppIdList;
+  };
+  DRW_LayoutList: {
+    new(): DRW_LayoutList;
   };
   DRW_BlockList: {
     new(): DRW_BlockList;

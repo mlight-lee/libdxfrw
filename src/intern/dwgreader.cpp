@@ -1243,6 +1243,11 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle& obj, DRW_Interface& in
             ret = e.parseDwg(version, &buff, bs);
             intfa.linkImage(&e);
             break; }
+        case 82: {
+            DRW_Layout layout;
+            ret = layout.parseDwg(version, &buff, bs);
+            intfa.addLayout(layout);
+            break; }
         default:
             //not supported object or entity add to remaining map for debug
             remainingMap[obj.handle]= obj;

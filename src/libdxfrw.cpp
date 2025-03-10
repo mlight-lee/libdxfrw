@@ -2164,6 +2164,35 @@ bool dxfRW::processTextStyle(){
     return setError(DRW::BAD_READ_TABLES);
 }
 
+bool dxfRW::processLayouts(){
+    std::cerr << "dxfRW::processLayouts" << std::endl;
+    int code;
+    std::string sectionstr;
+    bool reading = false;
+    DRW_Layout layout;
+    while (reader->readRec(&code)) {
+        DRW_DBG(code); DRW_DBG("\n");
+        if (code == 0) {
+            if (reading)
+                iface->addLayout(layout);
+            sectionstr = reader->getString();
+            DRW_DBG(sectionstr); DRW_DBG("\n");
+            if (sectionstr == "LAYOUT") {
+                reading = true;
+                layout.reset();
+            } else if (sectionstr == "ENDTAB") {
+                return true;  //found ENDTAB terminate
+            }
+        } else if (reading) {
+            if (!layout.parseCode(code, reader)) {
+                return setError( DRW::BAD_CODE_PARSED);
+            }
+        }
+    }
+
+    return setError(DRW::BAD_READ_TABLES);
+}
+
 bool dxfRW::processVports(){
     DRW_DBG("dxfRW::processVports");
     int code;
@@ -2880,12 +2909,16 @@ bool dxfRW::processObjects() {
     bool processed {false};
     nextentity = reader->getString();
     do {
+        std::cerr << " next entity: "<< nextentity << std::endl;
         if ("ENDSEC" == nextentity) {
             return true;  //found ENDSEC terminate
         }
 
         if ("IMAGEDEF" == nextentity) {
             processed = processImageDef();
+        }
+        else if ("LAYOUT" == nextentity) {
+            processed = processLayouts();
         }
         else if ("PLOTSETTINGS" == nextentity) {
             processed = processPlotSettings();
