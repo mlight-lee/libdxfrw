@@ -190,6 +190,11 @@ public:
      */
     virtual void addPlotSettings(const DRW_PlotSettings *data) = 0;
 
+    /**
+     * Called for LAYOUT object definition.
+     */
+    virtual void addLayout(const DRW_Layout& data) = 0;
+
     virtual void writeHeader(DRW_Header& data) = 0;
     virtual void writeBlocks() = 0;
     virtual void writeBlockRecords() = 0;

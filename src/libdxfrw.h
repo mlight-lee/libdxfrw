@@ -94,6 +94,7 @@ private:
     bool processDimStyle();
     bool processTextStyle();
     bool processVports();
+    bool processLayouts();
     bool processAppId();
 
     bool processPoint();

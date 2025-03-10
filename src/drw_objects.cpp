@@ -1151,6 +1151,150 @@ bool DRW_Vport::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     return buf->isGood();
 }
 
+bool DRW_Layout::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    switch (code) {
+    default:
+        return DRW_TableEntry::parseCode(code, reader);
+    }
+    return true;
+}
+
+bool DRW_Layout::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
+    dwgBuffer sBuff = *buf;
+    dwgBuffer *sBuf = buf;
+    if (version > DRW::AC1018) {//2007+
+        sBuf = &sBuff; //separate buffer for strings
+    }
+    bool ret = DRW_TableEntry::parseDwg(version, buf, sBuf, bs);
+    DRW_DBG("\n***************************** parsing Layout *********************************************\n");
+    if (!ret)
+        return ret;
+
+    pageSetupName = sBuf->getVariableText(version, false);
+    DRW_DBG("\nPlotsettings page setup name: "); DRW_DBG(pageSetupName.c_str());
+    printerOrConfigFile = sBuf->getVariableText(version, false);
+    DRW_DBG("\nPlotsettings printer or configuration file: "); DRW_DBG(printerOrConfigFile.c_str());
+    plotLayoutFlags = buf->getBitShort();
+    leftMargin = buf->getBitDouble();
+    bottomMargin = buf->getBitDouble();
+    rightMargin = buf->getBitDouble();
+    topMargin = buf->getBitDouble();
+    DRW_DBG("\nPlotsettings margin (left, bottom, right, top): ("); DRW_DBG(leftMargin); DRW_DBG(", "); DRW_DBG(bottomMargin); DRW_DBG(", "); DRW_DBG(rightMargin); DRW_DBG(", "); DRW_DBG(topMargin); DRW_DBG(", ");
+    paperWidth = buf->getBitDouble();
+    DRW_DBG("\nPlotsettings paper (width, height): ("); DRW_DBG(paperWidth); DRW_DBG(", ");
+    paperHeight = buf->getBitDouble();
+    DRW_DBG(paperHeight); DRW_DBG(")"); 
+    paperSize = sBuf->getVariableText(version, false);
+    DRW_DBG("\nPlotsettings paper size: "); DRW_DBG(paperSize.c_str());
+    plotOrigin.x = buf->getBitDouble();
+    plotOrigin.y = buf->getBitDouble();
+    plotPaperUnits = buf->getBitShort();
+    plotRotation = buf->getBitShort();
+    plotType = buf->getBitShort();
+    windowMin.x = buf->getBitDouble();
+    windowMin.y = buf->getBitDouble();
+    DRW_DBG("\nPlotsettings plot window area lower left: ("); DRW_DBGPT(windowMin.x, windowMin.y, 0); DRW_DBG(")");
+    windowMax.x = buf->getBitDouble();
+    windowMax.y = buf->getBitDouble();
+    DRW_DBG("\nPlotsettings plot window area upper right: ("); DRW_DBGPT(windowMax.x, windowMax.y, 0); DRW_DBG(")");
+
+    if (version > DRW::AC1009 && version < DRW::AC1018) {//R13-R2000 Only
+        plotViewName = buf->getCP8Text();
+    }
+
+    realWorldUnits = buf->getBitDouble();
+    drawingUnits = buf->getBitDouble();
+    currentStyleSheet = sBuf->getVariableText(version, false);
+    scaleType = buf->getBitShort();
+    scaleFactor = buf->getBitDouble();
+    paperImageOrigin.x = buf->getBitDouble();
+    paperImageOrigin.y = buf->getBitDouble();
+
+    if (version > DRW::AC1015) {//R2004+
+        shadePlotMode = buf->getBitShort();
+        shadePlotResLevel = buf->getBitShort();
+        shadePlotCustomDpi = buf->getBitShort();
+    }
+
+    layoutName = sBuf->getVariableText(version, false);
+    DRW_DBG("\nlayout name: "); DRW_DBG(layoutName.c_str());
+    tabOrder = sBuf->getBitLong();
+    DRW_DBG("\nlayout tab order: "); DRW_DBG(tabOrder);
+    flags = buf->getBitShort();
+    DRW_DBG("\nlayout flags: "); DRW_DBG(flags);
+    ucsOrigin = buf->get3BitDouble();
+    DRW_DBG("\nlayout ucs origin: ("); DRW_DBGPT(ucsOrigin.x, ucsOrigin.y, ucsOrigin.z); DRW_DBG(")");
+    minLimits = buf->get2RawDouble();
+    maxLimits = buf->get2RawDouble();
+    insertBasePoint = buf->get3BitDouble();
+    DRW_DBG("\nlayout insertion base point: ("); DRW_DBGPT(insertBasePoint.x, insertBasePoint.y, insertBasePoint.z); DRW_DBG(")");
+    ucsXAxis = buf->get3BitDouble();
+    DRW_DBG("\nlayout ucs x axis direction: ("); DRW_DBGPT(ucsXAxis.x, ucsXAxis.y, ucsXAxis.z); DRW_DBG(")");
+    ucsYAxis = buf->get3BitDouble();
+    DRW_DBG("\nlayout ucs y axis direction: ("); DRW_DBGPT(ucsYAxis.x, ucsYAxis.y, ucsYAxis.z); DRW_DBG(")");
+    elevation = buf->getBitDouble();
+    DRW_DBG("\nlayout elevation: "); DRW_DBG(elevation);
+    orthoviewType = buf->getBitShort();
+    DRW_DBG("\nlayout orthographic view type of UCS: "); DRW_DBG(orthoviewType);
+    extMin = buf->get3BitDouble();
+    DRW_DBG("\nlayout extent min: ("); DRW_DBGPT(extMin.x, extMin.y, extMin.z); DRW_DBG(")");
+    extMax = buf->get3BitDouble();
+    DRW_DBG("\nlayout extent max: ("); DRW_DBGPT(extMax.x, extMax.y, extMax.z); DRW_DBG(")");
+
+    if (version > DRW::AC1015) {//R2004+
+        viewportCount = buf->getRawLong32();
+        DRW_DBG("\nviewport count: "); DRW_DBG(viewportCount);
+    }
+
+    dwgHandle parentH = buf->getHandle();
+    DRW_DBG("\n parentH Handle: "); DRW_DBGHL(parentH.code, parentH.size, parentH.ref);
+    parentHandle = parentH.ref;
+
+    for (int i=0; i<numReactors; i++){
+        dwgHandle reactorH = buf->getHandle();
+        DRW_DBG("\n reactor Handle #"); DRW_DBG(i); DRW_DBG(": "); DRW_DBGHL(reactorH.code, reactorH.size, reactorH.ref);
+    }
+
+    DRW_DBG("\nRemaining bytes: "); DRW_DBG(buf->numRemainingBytes());
+    //RLZ: Reactors handles
+    if (xDictFlag !=1){
+        dwgHandle XDicObjH = buf->getHandle();
+        DRW_DBG("\n XDicObj control Handle: "); DRW_DBGHL(XDicObjH.code, XDicObjH.size, XDicObjH.ref);
+        DRW_DBG("\nRemaining bytes: "); DRW_DBG(buf->numRemainingBytes());
+    }
+/*RLZ: fails verify this part*/    dwgHandle XRefH = buf->getHandle();
+    DRW_DBG("\n XRefH control Handle: "); DRW_DBGHL(XRefH.code, XRefH.size, XRefH.ref);
+
+    if (version > DRW::AC1015) {//R2004+
+        // plot view handle (hard pointer)
+        buf->getHandle();
+    }
+    if (version > DRW::AC1018) {//R2007+
+        // Visual Style handle (soft pointer) 
+        buf->getHandle();
+    }
+    // associated paperspace block record handle (soft pointer) 
+    buf->getHandle();
+    // last active viewport handle (soft pointer) 
+    buf->getHandle();
+    // base ucs handle (hard pointer) 
+    buf->getHandle();
+    // named ucs handle (hard pointer)
+    buf->getHandle();
+
+    if (version > DRW::AC1015) {//R2004+
+        // Viewport handle (repeats Viewport count times) (soft pointer)
+        // for (int i=0;i< viewportCount;i++) {
+        //     buf->getHandle();
+        // }
+        // buf->getHandle();
+    }
+
+    DRW_DBG("\nRemaining bytes: "); DRW_DBG(buf->numRemainingBytes()); DRW_DBG("\n\n");
+    //    RS crc;   //RS */
+    return buf->isGood();
+}
+
 bool DRW_ImageDef::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 1:
